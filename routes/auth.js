@@ -13,7 +13,6 @@ router.post("/login", login)
 
 router.get("/me", authMiddleware, getMe)
 
-// Test routes
 router.get("/profile", authMiddleware, (req, res) => {
     res.json({
         success: true,
