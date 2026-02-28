@@ -9,7 +9,6 @@ const {
 } = require('../middleware/authorization');
 const User = require('../models/User');
 
-// All routes below require authentication
 router.use(authMiddleware);
 
 // Admin only routes
