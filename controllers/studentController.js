@@ -207,11 +207,7 @@ const updateStudent = async (req, res) => {
   }
 };
 
-/**
- * @desc    Delete student
- * @route   DELETE /api/admin/students/:id
- * @access  Private/Admin
- */
+
 const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
