@@ -84,10 +84,20 @@ const register = async (req, res, next) => {
       token,
     });
   } catch (error) {
+    console.error('Registration error:', error);
+    
     if (error.code === 11000) {
       return res.status(StatusCodes.BAD_REQUEST).json({ 
         success: false,
         msg: 'Email already exists. Please use a different email address.' 
+      });
+    }
+    
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        msg: messages.join(', ')
       });
     }
     
