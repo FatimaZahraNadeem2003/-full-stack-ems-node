@@ -24,7 +24,6 @@ const addTeacher = async (req, res) => {
       bio
     } = req.body;
 
-    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new BadRequestError('Email already in use');
