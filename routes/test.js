@@ -78,4 +78,4 @@ router.get('/my-role', authMiddleware, (req, res) => {
     });
 });
 
-module.exports = router;S
+module.exports = router;

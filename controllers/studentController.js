@@ -27,7 +27,7 @@ const addStudent = async (req, res) => {
       status
     } = req.body;
 
-    // Check if user already exists
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new BadRequestError('Email already in use');
