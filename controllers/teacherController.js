@@ -208,7 +208,7 @@ const updateTeacher = async (req, res) => {
       }
     }
 
-    // Update user data if provided
+    
     if (updateData.firstName || updateData.lastName || updateData.email) {
       const userUpdate = {};
       if (updateData.firstName) userUpdate.firstName = updateData.firstName;
