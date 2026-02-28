@@ -11,10 +11,8 @@ const {
 
 const router = express.Router();
 
-// All routes require authentication
 router.use(authMiddleware);
 
-// Routes
 router.route('/search').get(searchUsers);
 router.route('/').get(adminMiddleware, getAllUsers);
 router.route('/:id')
