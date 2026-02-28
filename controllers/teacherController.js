@@ -58,7 +58,6 @@ const addTeacher = async (req, res) => {
       bio
     });
 
-    // Populate user details
     await teacher.populate('userId', '-password');
 
     res.status(StatusCodes.CREATED).json({
