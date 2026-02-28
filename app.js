@@ -22,6 +22,8 @@ const connectDB = require("./db/connect");
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
 const testRoutes = require('./routes/test'); 
+
+const studentRoutes = require('./routes/studentRoutes');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
@@ -46,6 +48,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/admin/students", studentRoutes);
+
 app.use("/api/v1/test", testRoutes);
 
 app.get("/", (req, res) => {
