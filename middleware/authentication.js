@@ -23,7 +23,6 @@ const authMiddleware = async (req, res, next) => {
         
         next();
     } catch (error) {
-        // Handle specific JWT errors
         if (error.name === 'TokenExpiredError') {
             throw new UnauthenticatedError("Authentication invalid - Token expired");
         }
