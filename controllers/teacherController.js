@@ -84,7 +84,6 @@ const getAllTeachers = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, specialization, status } = req.query;
 
-    // Build query
     const query = {};
     if (specialization) query.specialization = { $regex: specialization, $options: 'i' };
     if (status) query.status = status;
