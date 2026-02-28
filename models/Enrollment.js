@@ -46,7 +46,6 @@ const EnrollmentSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Ensure a student can't enroll in same course twice
 EnrollmentSchema.index({ studentId: 1, courseId: 1 }, { unique: true });
 
 module.exports = mongoose.model('Enrollment', EnrollmentSchema);
