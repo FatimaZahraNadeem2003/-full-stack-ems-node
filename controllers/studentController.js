@@ -173,7 +173,6 @@ const updateStudent = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Find student
     const student = await Student.findById(id);
     if (!student) {
       throw new NotFoundError('Student not found');
