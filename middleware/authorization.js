@@ -1,10 +1,5 @@
 const { UnauthenticatedError, UnauthorizedError } = require("../errors");
 
-/**
- * Generic authorize middleware that checks if user has one of the allowed roles
- * @param  {...string} allowedRoles - Array of allowed roles
- * @returns {Function} Express middleware
- */
 const authorize = (...allowedRoles) => {
     return (req, res, next) => {
         if (!req.user) {
@@ -21,9 +16,7 @@ const authorize = (...allowedRoles) => {
     };
 };
 
-/**
- * Admin only middleware
- */
+
 const adminMiddleware = (req, res, next) => {
     if (!req.user) {
         throw new UnauthenticatedError("Authentication required");
@@ -36,9 +29,6 @@ const adminMiddleware = (req, res, next) => {
     next();
 };
 
-/**
- * Teacher middleware (admins also have access)
- */
 const teacherMiddleware = (req, res, next) => {
     if (!req.user) {
         throw new UnauthenticatedError("Authentication required");
@@ -51,9 +41,7 @@ const teacherMiddleware = (req, res, next) => {
     next();
 };
 
-/**
- * Student middleware (admins also have access)
- */
+
 const studentMiddleware = (req, res, next) => {
     if (!req.user) {
         throw new UnauthenticatedError("Authentication required");
@@ -66,9 +54,7 @@ const studentMiddleware = (req, res, next) => {
     next();
 };
 
-/**
- * Check if user owns the resource or is admin
- */
+
 const authorizeOwnerOrAdmin = (getResourceOwnerId) => {
     return async (req, res, next) => {
         try {

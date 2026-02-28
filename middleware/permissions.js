@@ -49,11 +49,7 @@ const PERMISSIONS = {
     DELETE_SCHEDULE: [ROLES.ADMIN],
 };
 
-/**
- * @param {Object} user
- * @param {string} permission 
- * @returns {boolean} 
- */
+
 const hasPermission = (user, permission) => {
     if (!user || !user.role) return false;
     
