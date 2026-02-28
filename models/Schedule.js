@@ -17,11 +17,11 @@ const ScheduleSchema = new mongoose.Schema({
         required: true
     },
     startTime: {
-        type: String,  // Format: "09:00"
+        type: String,  
         required: true
     },
     endTime: {
-        type: String,  // Format: "10:30"
+        type: String,  
         required: true
     },
     room: {
@@ -32,7 +32,7 @@ const ScheduleSchema = new mongoose.Schema({
         type: String
     },
     duration: {
-        type: Number,  // in minutes, calculated automatically
+        type: Number,  
         default: function() {
             if (this.startTime && this.endTime) {
                 const start = this.startTime.split(':');
@@ -65,7 +65,6 @@ const ScheduleSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Compound index to prevent scheduling conflicts
 ScheduleSchema.index(
     { dayOfWeek: 1, startTime: 1, endTime: 1, room: 1 },
     { unique: true }
