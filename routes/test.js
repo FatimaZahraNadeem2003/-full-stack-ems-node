@@ -8,7 +8,6 @@ const {
     authorize 
 } = require('../middleware/authorization');
 
-// Public route
 router.get('/public', (req, res) => {
     res.json({ 
         success: true, 
@@ -17,7 +16,6 @@ router.get('/public', (req, res) => {
     });
 });
 
-// Protected route
 router.get('/protected', authMiddleware, (req, res) => {
     res.json({ 
         success: true, 
