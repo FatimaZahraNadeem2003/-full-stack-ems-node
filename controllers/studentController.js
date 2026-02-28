@@ -154,11 +154,6 @@ const getStudentById = async (req, res) => {
   }
 };
 
-/**
- * @desc    Update student
- * @route   PUT /api/admin/students/:id
- * @access  Private/Admin
- */
 const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
