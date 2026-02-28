@@ -69,9 +69,7 @@ const getUserById = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Update user
-// @route   PUT /api/v1/users/:id
-// @access  Private (Admin or own user)
+
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { firstName, lastName, email } = req.body;
