@@ -192,7 +192,6 @@ const updateStudent = async (req, res) => {
       }
     }
 
-    // Remove user fields from student update
     const studentUpdate = { ...updateData };
     delete studentUpdate.firstName;
     delete studentUpdate.lastName;
