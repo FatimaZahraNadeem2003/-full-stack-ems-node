@@ -81,7 +81,6 @@ app.get("/api/v1", (req, res) => {
   });
 });
 
-// Error handling
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
