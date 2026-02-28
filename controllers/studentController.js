@@ -107,7 +107,6 @@ const getAllStudents = async (req, res) => {
       }
     }
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
     
     // Get students with populated user data
