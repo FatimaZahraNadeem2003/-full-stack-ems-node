@@ -21,11 +21,10 @@ const connectDB = require("./db/connect");
 
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
-const testRoutes = require('./routes/test'); // Make sure this file exists
+const testRoutes = require('./routes/test'); 
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
-// Security middleware
 app.set('trust proxy', 1);
 app.use(
   rateLimiter({
