@@ -43,9 +43,7 @@ const searchUsers = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get user by ID
-// @route   GET /api/v1/users/:id
-// @access  Private
+
 const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   
