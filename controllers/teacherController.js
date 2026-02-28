@@ -42,7 +42,6 @@ const addTeacher = async (req, res) => {
       role: 'teacher'
     });
 
-    // Create teacher profile
     const teacher = await Teacher.create({
       userId: user._id,
       employeeId,
