@@ -104,7 +104,6 @@ const deleteUser = asyncHandler(async (req, res) => {
     throw new NotFoundError('User not found');
   }
   
-  // Delete role-specific profile
   if (user.role === 'student') {
     await Student.findOneAndDelete({ userId: user._id });
   } else if (user.role === 'teacher') {
