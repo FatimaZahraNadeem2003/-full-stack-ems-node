@@ -58,7 +58,6 @@ const StudentSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Virtual for full name from User model (will be populated)
 StudentSchema.virtual('fullName').get(function() {
     return this.userId ? `${this.userId.firstName} ${this.userId.lastName}` : '';
 });
