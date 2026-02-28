@@ -307,7 +307,6 @@ const getTeacherStats = async (req, res) => {
     const activeTeachers = await Teacher.countDocuments({ status: 'active' });
     const onLeaveTeachers = await Teacher.countDocuments({ status: 'on-leave' });
     
-    // Get specialization distribution
     const specializationStats = await Teacher.aggregate([
       { $group: { _id: '$specialization', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
