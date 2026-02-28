@@ -13,7 +13,6 @@ const authMiddleware = async (req, res, next) => {
     try {
         const payload = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Attach user to request
         req.user = { 
             userId: payload.userId, 
             firstName: payload.firstName, 
