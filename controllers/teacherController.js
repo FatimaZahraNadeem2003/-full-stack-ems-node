@@ -198,7 +198,6 @@ const updateTeacher = async (req, res) => {
       throw new NotFoundError('Teacher not found');
     }
 
-    // Check if employeeId is being updated and already exists
     if (updateData.employeeId && updateData.employeeId !== teacher.employeeId) {
       const existingTeacher = await Teacher.findOne({ 
         employeeId: updateData.employeeId,
