@@ -31,7 +31,7 @@ const StudentSchema = new mongoose.Schema({
         type: String
     },
     class: {
-        type: String,  // e.g., "10th Grade", "BS CS 1st Semester"
+        type: String,  
         required: true
     },
     section: {
