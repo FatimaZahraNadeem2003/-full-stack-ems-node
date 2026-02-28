@@ -72,11 +72,7 @@ const addStudent = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get all students
- * @route   GET /api/admin/students
- * @access  Private/Admin
- */
+
 const getAllStudents = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, class: studentClass, status } = req.query;
