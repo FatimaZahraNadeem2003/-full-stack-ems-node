@@ -74,7 +74,6 @@ const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { firstName, lastName, email } = req.body;
   
-  // Check if user is updating their own profile or is admin
   if (req.user.userId !== id && req.user.role !== 'admin') {
     throw new UnauthenticatedError('Not authorized to update this user');
   }
