@@ -235,7 +235,6 @@ const deleteStudent = async (req, res) => {
       throw new NotFoundError('Student not found');
     }
 
-    // Delete user account
     await User.findByIdAndDelete(student.userId);
 
     // Delete student profile
