@@ -118,9 +118,7 @@ const deleteUser = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get all users (with pagination)
-// @route   GET /api/v1/users
-// @access  Private (Admin only)
+
 const getAllUsers = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, role } = req.query;
   
