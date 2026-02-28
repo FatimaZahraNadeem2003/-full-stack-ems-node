@@ -52,7 +52,7 @@ const StudentSchema = new mongoose.Schema({
         default: 'active'
     },
     profilePicture: {
-        type: String  // URL to image
+        type: String  
     }
 }, {
     timestamps: true
