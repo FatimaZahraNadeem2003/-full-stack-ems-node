@@ -12,7 +12,6 @@ const User = require('../models/User');
 router.use(authMiddleware);
 
 router.get('/dashboard/stats', adminMiddleware, async (req, res) => {
-    // Only admin can access
     const stats = {
         totalStudents: await Student.countDocuments(),
         totalTeachers: await Teacher.countDocuments(),
