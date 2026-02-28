@@ -2,11 +2,6 @@ const { Student, User } = require('../models');
 const { BadRequestError, NotFoundError } = require('../errors');
 const { StatusCodes } = require('http-status-codes');
 
-/**
- * @desc    Add new student
- * @route   POST /api/admin/students
- * @access  Private/Admin
- */
 const addStudent = async (req, res) => {
   try {
     const { 

@@ -10,11 +10,9 @@ const {
   deleteStudent
 } = require('../controllers/studentController');
 
-// All routes require authentication and admin access
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
-// Student routes
 router.route('/')
   .post(addStudent)
   .get(getAllStudents);
