@@ -1,0 +1,362 @@
+const { Teacher, User } = require('../models');
+const { BadRequestError, NotFoundError } = require('../errors');
+const { StatusCodes } = require('http-status-codes');
+
+/**
+ * @desc    Add new teacher
+ * @route   POST /api/admin/teachers
+ * @access  Private/Admin
+ */
+const addTeacher = async (req, res) => {
+  try {
+    const { 
+      firstName, 
+      lastName, 
+      email, 
+      password,
+      employeeId,
+      qualification,
+      specialization,
+      experience,
+      dateOfBirth,
+      gender,
+      contactNumber,
+      emergencyContact,
+      address,
+      joiningDate,
+      status,
+      bio
+    } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestError('Email already in use');
+    }
+
+    // Check if employeeId already exists
+    const existingTeacher = await Teacher.findOne({ employeeId });
+    if (existingTeacher) {
+      throw new BadRequestError('Employee ID already exists');
+    }
+
+    // Create user account first
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password: password || 'teacher123', // Default password if not provided
+      role: 'teacher'
+    });
+
+    // Create teacher profile
+    const teacher = await Teacher.create({
+      userId: user._id,
+      employeeId,
+      qualification,
+      specialization,
+      experience: experience || 0,
+      dateOfBirth,
+      gender,
+      contactNumber,
+      emergencyContact,
+      address,
+      joiningDate: joiningDate || Date.now(),
+      status: status || 'active',
+      bio
+    });
+
+    // Populate user details
+    await teacher.populate('userId', '-password');
+
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'Teacher added successfully',
+      data: teacher
+    });
+  } catch (error) {
+    console.error('Add teacher error:', error);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      throw new BadRequestError(`${field} already exists`);
+    }
+    throw error;
+  }
+};
+
+/**
+ * @desc    Get all teachers
+ * @route   GET /api/admin/teachers
+ * @access  Private/Admin
+ */
+const getAllTeachers = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search, specialization, status } = req.query;
+
+    // Build query
+    const query = {};
+    if (specialization) query.specialization = { $regex: specialization, $options: 'i' };
+    if (status) query.status = status;
+
+    // If search query, find matching users first
+    let userIds = [];
+    if (search) {
+      const users = await User.find({
+        role: 'teacher',
+        $or: [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      
+      userIds = users.map(u => u._id);
+      if (userIds.length > 0) {
+        query.userId = { $in: userIds };
+      } else {
+        // Also search in teacher fields
+        const teacherSearch = await Teacher.find({
+          $or: [
+            { employeeId: { $regex: search, $options: 'i' } },
+            { qualification: { $regex: search, $options: 'i' } },
+            { specialization: { $regex: search, $options: 'i' } }
+          ]
+        }).select('_id');
+        
+        const teacherIds = teacherSearch.map(t => t._id);
+        if (teacherIds.length > 0) {
+          query._id = { $in: teacherIds };
+        } else {
+          // No matching results
+          return res.status(StatusCodes.OK).json({
+            success: true,
+            count: 0,
+            total: 0,
+            page: parseInt(page),
+            pages: 0,
+            data: []
+          });
+        }
+      }
+    }
+
+    // Pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Get teachers with populated user data
+    const teachers = await Teacher.find(query)
+      .populate({
+        path: 'userId',
+        select: '-password'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Teacher.countDocuments(query);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      count: teachers.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      data: teachers
+    });
+  } catch (error) {
+    console.error('Get all teachers error:', error);
+    throw error;
+  }
+};
+
+/**
+ * @desc    Get single teacher by ID
+ * @route   GET /api/admin/teachers/:id
+ * @access  Private/Admin
+ */
+const getTeacherById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const teacher = await Teacher.findById(id)
+      .populate({
+        path: 'userId',
+        select: '-password'
+      });
+
+    if (!teacher) {
+      throw new NotFoundError('Teacher not found');
+    }
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: teacher
+    });
+  } catch (error) {
+    console.error('Get teacher by id error:', error);
+    throw error;
+  }
+};
+
+/**
+ * @desc    Update teacher
+ * @route   PUT /api/admin/teachers/:id
+ * @access  Private/Admin
+ */
+const updateTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Find teacher
+    const teacher = await Teacher.findById(id);
+    if (!teacher) {
+      throw new NotFoundError('Teacher not found');
+    }
+
+    // Check if employeeId is being updated and already exists
+    if (updateData.employeeId && updateData.employeeId !== teacher.employeeId) {
+      const existingTeacher = await Teacher.findOne({ 
+        employeeId: updateData.employeeId,
+        _id: { $ne: id }
+      });
+      if (existingTeacher) {
+        throw new BadRequestError('Employee ID already exists');
+      }
+    }
+
+    // Update user data if provided
+    if (updateData.firstName || updateData.lastName || updateData.email) {
+      const userUpdate = {};
+      if (updateData.firstName) userUpdate.firstName = updateData.firstName;
+      if (updateData.lastName) userUpdate.lastName = updateData.lastName;
+      if (updateData.email) {
+        // Check if email already exists for other users
+        const existingUser = await User.findOne({ 
+          email: updateData.email,
+          _id: { $ne: teacher.userId }
+        });
+        if (existingUser) {
+          throw new BadRequestError('Email already in use');
+        }
+        userUpdate.email = updateData.email;
+      }
+
+      if (Object.keys(userUpdate).length > 0) {
+        await User.findByIdAndUpdate(teacher.userId, userUpdate, {
+          new: true,
+          runValidators: true
+        });
+      }
+    }
+
+    // Remove user fields from teacher update
+    const teacherUpdate = { ...updateData };
+    delete teacherUpdate.firstName;
+    delete teacherUpdate.lastName;
+    delete teacherUpdate.email;
+    delete teacherUpdate.password;
+
+    // Update teacher
+    const updatedTeacher = await Teacher.findByIdAndUpdate(
+      id,
+      teacherUpdate,
+      { new: true, runValidators: true }
+    ).populate({
+      path: 'userId',
+      select: '-password'
+    });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Teacher updated successfully',
+      data: updatedTeacher
+    });
+  } catch (error) {
+    console.error('Update teacher error:', error);
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      throw new BadRequestError(`${field} already exists`);
+    }
+    throw error;
+  }
+};
+
+/**
+ * @desc    Delete teacher
+ * @route   DELETE /api/admin/teachers/:id
+ * @access  Private/Admin
+ */
+const deleteTeacher = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find teacher
+    const teacher = await Teacher.findById(id);
+    if (!teacher) {
+      throw new NotFoundError('Teacher not found');
+    }
+
+    // Check if teacher has any courses assigned
+    const Course = require('../models/Course');
+    const assignedCourses = await Course.find({ teacherId: id });
+    if (assignedCourses.length > 0) {
+      throw new BadRequestError('Cannot delete teacher with assigned courses. Please reassign courses first.');
+    }
+
+    // Delete user account
+    await User.findByIdAndDelete(teacher.userId);
+
+    // Delete teacher profile
+    await teacher.deleteOne();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Teacher deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete teacher error:', error);
+    throw error;
+  }
+};
+
+/**
+ * @desc    Get teacher statistics
+ * @route   GET /api/admin/teachers/stats/summary
+ * @access  Private/Admin
+ */
+const getTeacherStats = async (req, res) => {
+  try {
+    const totalTeachers = await Teacher.countDocuments();
+    const activeTeachers = await Teacher.countDocuments({ status: 'active' });
+    const onLeaveTeachers = await Teacher.countDocuments({ status: 'on-leave' });
+    
+    // Get specialization distribution
+    const specializationStats = await Teacher.aggregate([
+      { $group: { _id: '$specialization', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: {
+        total: totalTeachers,
+        active: activeTeachers,
+        onLeave: onLeaveTeachers,
+        bySpecialization: specializationStats
+      }
+    });
+  } catch (error) {
+    console.error('Get teacher stats error:', error);
+    throw error;
+  }
+};
+
+module.exports = {
+  addTeacher,
+  getAllTeachers,
+  getTeacherById,
+  updateTeacher,
+  deleteTeacher,
+  getTeacherStats
+};
