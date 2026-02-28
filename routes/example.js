@@ -25,7 +25,6 @@ router.get('/courses/my-courses', teacherMiddleware, async (req, res) => {
     res.json({ success: true, data: courses });
 });
 
-// Student routes
 router.get('/courses/my-enrollments', studentMiddleware, async (req, res) => {
     // Students and admins can access
     const enrollments = await Enrollment.find({ studentId: req.user.userId })
