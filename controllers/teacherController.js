@@ -271,7 +271,6 @@ const deleteTeacher = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find teacher
     const teacher = await Teacher.findById(id);
     if (!teacher) {
       throw new NotFoundError('Teacher not found');
