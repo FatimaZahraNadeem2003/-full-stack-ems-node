@@ -230,7 +230,6 @@ const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Find student
     const student = await Student.findById(id);
     if (!student) {
       throw new NotFoundError('Student not found');
