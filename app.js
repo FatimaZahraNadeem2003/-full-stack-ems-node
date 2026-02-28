@@ -24,6 +24,8 @@ const userRouter = require('./routes/user');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
+const testRoutes = require('./routes/test');
+
 app.set('trust proxy', 1);
 app.use(
   rateLimiter({
@@ -44,6 +46,8 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
+
+app.use("/api/v1/test", testRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({

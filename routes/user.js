@@ -1,6 +1,6 @@
 const express = require('express');
-const auth = require('../middleware/authentication');
-const authorize = require('../middleware/authrize');
+const authMiddleware = require('../middleware/authentication');
+const { authorizeAdmin } = require('../middleware/authorization');
 const {
   searchUsers,
   getUserById,
@@ -11,13 +11,13 @@ const {
 
 const router = express.Router();
 
-router.use(auth);
+router.use(authMiddleware);
 
 router.route('/search').get(searchUsers);
-router.route('/').get(authorize('admin'), getAllUsers);
+router.route('/').get(authorizeAdmin, getAllUsers);
 router.route('/:id')
   .get(getUserById)
   .put(updateUser)
-  .delete(authorize('admin'), deleteUser);
+  .delete(authorizeAdmin, deleteUser);
 
 module.exports = router;
