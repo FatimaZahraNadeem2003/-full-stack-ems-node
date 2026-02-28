@@ -1,0 +1,277 @@
+const { Student, User } = require('../models');
+const { BadRequestError, NotFoundError } = require('../errors');
+const { StatusCodes } = require('http-status-codes');
+
+/**
+ * @desc    Add new student
+ * @route   POST /api/admin/students
+ * @access  Private/Admin
+ */
+const addStudent = async (req, res) => {
+  try {
+    const { 
+      firstName, 
+      lastName, 
+      email, 
+      password,
+      dateOfBirth,
+      gender,
+      contactNumber,
+      address,
+      parentName,
+      parentContact,
+      class: studentClass,
+      section,
+      rollNumber,
+      admissionDate,
+      status
+    } = req.body;
+
+    // Check if user already exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      throw new BadRequestError('Email already in use');
+    }
+
+    // Create user account first
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password: password || 'student123', // Default password if not provided
+      role: 'student'
+    });
+
+    // Create student profile
+    const student = await Student.create({
+      userId: user._id,
+      dateOfBirth,
+      gender,
+      contactNumber,
+      address,
+      parentName,
+      parentContact,
+      class: studentClass,
+      section,
+      rollNumber,
+      admissionDate: admissionDate || Date.now(),
+      status: status || 'active'
+    });
+
+    // Populate user details
+    await student.populate('userId', '-password');
+
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'Student added successfully',
+      data: student
+    });
+  } catch (error) {
+    console.error('Add student error:', error);
+    if (error.code === 11000) {
+      throw new BadRequestError('Roll number already exists');
+    }
+    throw error;
+  }
+};
+
+/**
+ * @desc    Get all students
+ * @route   GET /api/admin/students
+ * @access  Private/Admin
+ */
+const getAllStudents = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search, class: studentClass, status } = req.query;
+
+    // Build query
+    const query = {};
+    if (studentClass) query.class = studentClass;
+    if (status) query.status = status;
+
+    // If search query, find matching users first
+    let userIds = [];
+    if (search) {
+      const users = await User.find({
+        role: 'student',
+        $or: [
+          { firstName: { $regex: search, $options: 'i' } },
+          { lastName: { $regex: search, $options: 'i' } },
+          { email: { $regex: search, $options: 'i' } }
+        ]
+      }).select('_id');
+      
+      userIds = users.map(u => u._id);
+      if (userIds.length > 0) {
+        query.userId = { $in: userIds };
+      } else {
+        // No matching users, return empty result
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          count: 0,
+          total: 0,
+          page: parseInt(page),
+          pages: 0,
+          data: []
+        });
+      }
+    }
+
+    // Pagination
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+    
+    // Get students with populated user data
+    const students = await Student.find(query)
+      .populate({
+        path: 'userId',
+        select: '-password'
+      })
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(limit));
+
+    const total = await Student.countDocuments(query);
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      count: students.length,
+      total,
+      page: parseInt(page),
+      pages: Math.ceil(total / parseInt(limit)),
+      data: students
+    });
+  } catch (error) {
+    console.error('Get all students error:', error);
+    throw error;
+  }
+};
+
+/**
+ * @desc    Get single student by ID
+ * @route   GET /api/admin/students/:id
+ * @access  Private/Admin
+ */
+const getStudentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const student = await Student.findById(id)
+      .populate({
+        path: 'userId',
+        select: '-password'
+      });
+
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: student
+    });
+  } catch (error) {
+    console.error('Get student by id error:', error);
+    throw error;
+  }
+};
+
+/**
+ * @desc    Update student
+ * @route   PUT /api/admin/students/:id
+ * @access  Private/Admin
+ */
+const updateStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updateData = req.body;
+
+    // Find student
+    const student = await Student.findById(id);
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    // Update user data if provided
+    if (updateData.firstName || updateData.lastName || updateData.email) {
+      const userUpdate = {};
+      if (updateData.firstName) userUpdate.firstName = updateData.firstName;
+      if (updateData.lastName) userUpdate.lastName = updateData.lastName;
+      if (updateData.email) userUpdate.email = updateData.email;
+
+      if (Object.keys(userUpdate).length > 0) {
+        await User.findByIdAndUpdate(student.userId, userUpdate, {
+          new: true,
+          runValidators: true
+        });
+      }
+    }
+
+    // Remove user fields from student update
+    const studentUpdate = { ...updateData };
+    delete studentUpdate.firstName;
+    delete studentUpdate.lastName;
+    delete studentUpdate.email;
+    delete studentUpdate.password;
+
+    // Update student
+    const updatedStudent = await Student.findByIdAndUpdate(
+      id,
+      studentUpdate,
+      { new: true, runValidators: true }
+    ).populate({
+      path: 'userId',
+      select: '-password'
+    });
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Student updated successfully',
+      data: updatedStudent
+    });
+  } catch (error) {
+    console.error('Update student error:', error);
+    if (error.code === 11000) {
+      throw new BadRequestError('Roll number already exists');
+    }
+    throw error;
+  }
+};
+
+/**
+ * @desc    Delete student
+ * @route   DELETE /api/admin/students/:id
+ * @access  Private/Admin
+ */
+const deleteStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Find student
+    const student = await Student.findById(id);
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    // Delete user account
+    await User.findByIdAndDelete(student.userId);
+
+    // Delete student profile
+    await student.deleteOne();
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Student deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete student error:', error);
+    throw error;
+  }
+};
+
+module.exports = {
+  addStudent,
+  getAllStudents,
+  getStudentById,
+  updateStudent,
+  deleteStudent
+};
