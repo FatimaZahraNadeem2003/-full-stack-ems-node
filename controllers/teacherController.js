@@ -34,7 +34,6 @@ const addTeacher = async (req, res) => {
       throw new BadRequestError('Employee ID already exists');
     }
 
-    // Create user account first
     const user = await User.create({
       firstName,
       lastName,
