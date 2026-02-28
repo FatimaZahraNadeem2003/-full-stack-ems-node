@@ -56,7 +56,6 @@ const addStudent = async (req, res) => {
       status: status || 'active'
     });
 
-    // Populate user details
     await student.populate('userId', '-password');
 
     res.status(StatusCodes.CREATED).json({
