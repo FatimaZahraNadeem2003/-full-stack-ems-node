@@ -16,7 +16,6 @@ router.use(adminMiddleware);
 
 router.get('/stats', getTeacherStats);
 
-// Teacher routes
 router.route('/')
   .post(addTeacher)
   .get(getAllTeachers);
