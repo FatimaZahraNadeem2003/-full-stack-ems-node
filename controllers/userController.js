@@ -94,9 +94,7 @@ const updateUser = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Delete user
-// @route   DELETE /api/v1/users/:id
-// @access  Private (Admin only)
+
 const deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   
