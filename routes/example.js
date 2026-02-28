@@ -26,7 +26,6 @@ router.get('/courses/my-courses', teacherMiddleware, async (req, res) => {
 });
 
 router.get('/courses/my-enrollments', studentMiddleware, async (req, res) => {
-    // Students and admins can access
     const enrollments = await Enrollment.find({ studentId: req.user.userId })
         .populate('courseId');
     res.json({ success: true, data: enrollments });
