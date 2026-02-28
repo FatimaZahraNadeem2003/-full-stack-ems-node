@@ -2,42 +2,62 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authentication');
 const { 
-    authorize, 
-    authorizeAdmin, 
-    authorizeTeacher, 
-    authorizeStudent,
+    adminMiddleware, 
+    teacherMiddleware, 
+    studentMiddleware,
     authorizeOwnerOrAdmin 
 } = require('../middleware/authorization');
 const User = require('../models/User');
 
-router.get('/public', (req, res) => {
-    res.json({ message: 'Public route' });
-});
-
+// All routes below require authentication
 router.use(authMiddleware);
 
-router.get('/admin-only', authorizeAdmin, (req, res) => {
-    res.json({ message: 'Admin route', user: req.user });
+// Admin only routes
+router.get('/dashboard/stats', adminMiddleware, async (req, res) => {
+    // Only admin can access
+    const stats = {
+        totalStudents: await Student.countDocuments(),
+        totalTeachers: await Teacher.countDocuments(),
+        totalCourses: await Course.countDocuments()
+    };
+    res.json({ success: true, data: stats });
 });
 
-router.get('/teacher-only', authorizeTeacher, (req, res) => {
-    res.json({ message: 'Teacher route', user: req.user });
+// Teacher routes
+router.get('/courses/my-courses', teacherMiddleware, async (req, res) => {
+    // Teachers and admins can access
+    const courses = await Course.find({ teacherId: req.user.userId });
+    res.json({ success: true, data: courses });
 });
 
-router.get('/student-only', authorizeStudent, (req, res) => {
-    res.json({ message: 'Student route', user: req.user });
+// Student routes
+router.get('/courses/my-enrollments', studentMiddleware, async (req, res) => {
+    // Students and admins can access
+    const enrollments = await Enrollment.find({ studentId: req.user.userId })
+        .populate('courseId');
+    res.json({ success: true, data: enrollments });
 });
 
-router.get('/multiple-roles', authorize('admin', 'teacher'), (req, res) => {
-    res.json({ message: 'Admin or Teacher route', user: req.user });
-});
-
+// Resource ownership example
 router.get('/profile/:userId', 
     authorizeOwnerOrAdmin(async (req) => req.params.userId),
     async (req, res) => {
         const user = await User.findById(req.params.userId).select('-password');
-        res.json({ user });
+        res.json({ success: true, data: user });
     }
 );
+
+// Multiple roles example
+router.get('/grades', authorize('admin', 'teacher', 'student'), async (req, res) => {
+    let grades;
+    if (req.user.role === 'student') {
+        grades = await Grade.find({ studentId: req.user.userId });
+    } else if (req.user.role === 'teacher') {
+        grades = await Grade.find({ teacherId: req.user.userId });
+    } else {
+        grades = await Grade.find();
+    }
+    res.json({ success: true, data: grades });
+});
 
 module.exports = router;

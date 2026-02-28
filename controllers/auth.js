@@ -154,7 +154,7 @@ const login = async (req, res, next) => {
   }
 };
 
-const getMe = async (req, res) => {
+const getMe = async (req, res, next) => {
   try {
     const user = await User.findById(req.user.userId).select('-password');
     
@@ -168,9 +168,13 @@ const getMe = async (req, res) => {
     } else if (user.role === 'teacher') {
       profile = await Teacher.findOne({ userId: user._id });
     } else if (user.role === 'admin') {
-      const studentCount = await Student.countDocuments();
-      const teacherCount = await Teacher.countDocuments();
-      const courseCount = await require('../models/Course').countDocuments();
+      const StudentModel = require('../models/Student');
+      const TeacherModel = require('../models/Teacher');
+      const CourseModel = require('../models/Course');
+      
+      const studentCount = await StudentModel.countDocuments();
+      const teacherCount = await TeacherModel.countDocuments();
+      const courseCount = await CourseModel.countDocuments();
       profile = { stats: { studentCount, teacherCount, courseCount } };
     }
     

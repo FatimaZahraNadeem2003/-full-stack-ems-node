@@ -2,7 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const { CustomAPIError } = require("../errors");
 
 const errorHandlerMiddleware = (err, req, res, next) => {
-  console.log(err);
+  console.log('Error:', err);
 
   let customError = {
     statusCode: err.statusCode || StatusCodes.INTERNAL_SERVER_ERROR,
@@ -33,6 +33,16 @@ const errorHandlerMiddleware = (err, req, res, next) => {
   if (err.name === "CastError") {
     customError.msg = `No item found with id: ${err.value}`;
     customError.statusCode = StatusCodes.NOT_FOUND;
+  }
+
+  if (err.name === "TokenExpiredError") {
+    customError.msg = "Token expired, please login again";
+    customError.statusCode = StatusCodes.UNAUTHORIZED;
+  }
+
+  if (err.name === "JsonWebTokenError") {
+    customError.msg = "Invalid token, please login again";
+    customError.statusCode = StatusCodes.UNAUTHORIZED;
   }
 
   return res.status(customError.statusCode).json({

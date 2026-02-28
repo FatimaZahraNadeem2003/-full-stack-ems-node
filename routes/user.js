@@ -1,6 +1,6 @@
 const express = require('express');
 const authMiddleware = require('../middleware/authentication');
-const { authorizeAdmin } = require('../middleware/authorization');
+const { adminMiddleware } = require('../middleware/authorization');
 const {
   searchUsers,
   getUserById,
@@ -11,13 +11,15 @@ const {
 
 const router = express.Router();
 
+// All routes require authentication
 router.use(authMiddleware);
 
+// Routes
 router.route('/search').get(searchUsers);
-router.route('/').get(authorizeAdmin, getAllUsers);
+router.route('/').get(adminMiddleware, getAllUsers);
 router.route('/:id')
   .get(getUserById)
   .put(updateUser)
-  .delete(authorizeAdmin, deleteUser);
+  .delete(adminMiddleware, deleteUser);
 
 module.exports = router;

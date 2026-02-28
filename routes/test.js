@@ -2,12 +2,13 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authentication');
 const { 
-    authorizeAdmin, 
-    authorizeTeacher, 
-    authorizeStudent,
+    adminMiddleware, 
+    teacherMiddleware, 
+    studentMiddleware,
     authorize 
 } = require('../middleware/authorization');
 
+// Public route
 router.get('/public', (req, res) => {
     res.json({ 
         success: true, 
@@ -16,6 +17,7 @@ router.get('/public', (req, res) => {
     });
 });
 
+// Protected route
 router.get('/protected', authMiddleware, (req, res) => {
     res.json({ 
         success: true, 
@@ -24,7 +26,8 @@ router.get('/protected', authMiddleware, (req, res) => {
     });
 });
 
-router.get('/admin', authMiddleware, authorizeAdmin, (req, res) => {
+// Admin only
+router.get('/admin', authMiddleware, adminMiddleware, (req, res) => {
     res.json({ 
         success: true, 
         message: 'Admin only route',
@@ -32,7 +35,8 @@ router.get('/admin', authMiddleware, authorizeAdmin, (req, res) => {
     });
 });
 
-router.get('/teacher', authMiddleware, authorizeTeacher, (req, res) => {
+// Teacher route
+router.get('/teacher', authMiddleware, teacherMiddleware, (req, res) => {
     res.json({ 
         success: true, 
         message: 'Teacher route (admins allowed)',
@@ -40,7 +44,8 @@ router.get('/teacher', authMiddleware, authorizeTeacher, (req, res) => {
     });
 });
 
-router.get('/student', authMiddleware, authorizeStudent, (req, res) => {
+// Student route
+router.get('/student', authMiddleware, studentMiddleware, (req, res) => {
     res.json({ 
         success: true, 
         message: 'Student route (admins allowed)',
@@ -48,6 +53,7 @@ router.get('/student', authMiddleware, authorizeStudent, (req, res) => {
     });
 });
 
+// Staff route
 router.get('/staff', authMiddleware, authorize('admin', 'teacher'), (req, res) => {
     res.json({ 
         success: true, 
@@ -56,11 +62,12 @@ router.get('/staff', authMiddleware, authorize('admin', 'teacher'), (req, res) =
     });
 });
 
+// Role info
 router.get('/my-role', authMiddleware, (req, res) => {
     const roleInfo = {
-        admin: req.user.role === 'admin',
-        teacher: req.user.role === 'teacher',
-        student: req.user.role === 'student',
+        isAdmin: req.user.role === 'admin',
+        isTeacher: req.user.role === 'teacher',
+        isStudent: req.user.role === 'student',
         permissions: {
             canManageUsers: ['admin'].includes(req.user.role),
             canManageCourses: ['admin', 'teacher'].includes(req.user.role),

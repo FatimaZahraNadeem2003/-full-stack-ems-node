@@ -2,6 +2,7 @@ const { UnauthenticatedError } = require('../errors');
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = async (req, res, next) => {
+    // Check for token in headers
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -11,8 +12,10 @@ const authMiddleware = async (req, res, next) => {
     const token = authHeader.split(" ")[1];
 
     try {
+        // Verify token
         const payload = jwt.verify(token, process.env.JWT_SECRET);
         
+        // Attach user to request
         req.user = { 
             userId: payload.userId, 
             firstName: payload.firstName, 
@@ -23,6 +26,7 @@ const authMiddleware = async (req, res, next) => {
         
         next();
     } catch (error) {
+        // Handle specific JWT errors
         if (error.name === 'TokenExpiredError') {
             throw new UnauthenticatedError("Authentication invalid - Token expired");
         }
