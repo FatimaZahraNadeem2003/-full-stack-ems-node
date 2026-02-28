@@ -237,7 +237,6 @@ const deleteStudent = async (req, res) => {
 
     await User.findByIdAndDelete(student.userId);
 
-    // Delete student profile
     await student.deleteOne();
 
     res.status(StatusCodes.OK).json({
