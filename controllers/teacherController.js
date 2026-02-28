@@ -238,7 +238,6 @@ const updateTeacher = async (req, res) => {
     delete teacherUpdate.email;
     delete teacherUpdate.password;
 
-    // Update teacher
     const updatedTeacher = await Teacher.findByIdAndUpdate(
       id,
       teacherUpdate,
