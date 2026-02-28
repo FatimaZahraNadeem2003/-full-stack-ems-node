@@ -276,7 +276,6 @@ const deleteTeacher = async (req, res) => {
       throw new NotFoundError('Teacher not found');
     }
 
-    // Check if teacher has any courses assigned
     const Course = require('../models/Course');
     const assignedCourses = await Course.find({ teacherId: id });
     if (assignedCourses.length > 0) {
