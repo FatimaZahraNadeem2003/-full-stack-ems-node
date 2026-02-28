@@ -31,7 +31,6 @@ router.get('/courses/my-enrollments', studentMiddleware, async (req, res) => {
     res.json({ success: true, data: enrollments });
 });
 
-// Resource ownership example
 router.get('/profile/:userId', 
     authorizeOwnerOrAdmin(async (req) => req.params.userId),
     async (req, res) => {
