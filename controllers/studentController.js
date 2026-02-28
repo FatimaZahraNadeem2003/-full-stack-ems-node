@@ -33,7 +33,6 @@ const addStudent = async (req, res) => {
       throw new BadRequestError('Email already in use');
     }
 
-    // Create user account first
     const user = await User.create({
       firstName,
       lastName,
@@ -42,7 +41,6 @@ const addStudent = async (req, res) => {
       role: 'student'
     });
 
-    // Create student profile
     const student = await Student.create({
       userId: user._id,
       dateOfBirth,
