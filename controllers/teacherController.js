@@ -88,7 +88,6 @@ const getAllTeachers = async (req, res) => {
     if (specialization) query.specialization = { $regex: specialization, $options: 'i' };
     if (status) query.status = status;
 
-    // If search query, find matching users first
     let userIds = [];
     if (search) {
       const users = await User.find({
