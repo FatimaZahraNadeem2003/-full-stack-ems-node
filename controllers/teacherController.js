@@ -282,7 +282,6 @@ const deleteTeacher = async (req, res) => {
       throw new BadRequestError('Cannot delete teacher with assigned courses. Please reassign courses first.');
     }
 
-    // Delete user account
     await User.findByIdAndDelete(teacher.userId);
 
     // Delete teacher profile
