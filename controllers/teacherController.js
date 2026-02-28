@@ -2,11 +2,7 @@ const { Teacher, User } = require('../models');
 const { BadRequestError, NotFoundError } = require('../errors');
 const { StatusCodes } = require('http-status-codes');
 
-/**
- * @desc    Add new teacher
- * @route   POST /api/admin/teachers
- * @access  Private/Admin
- */
+
 const addTeacher = async (req, res) => {
   try {
     const { 
