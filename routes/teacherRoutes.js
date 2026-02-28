@@ -11,11 +11,9 @@ const {
   getTeacherStats
 } = require('../controllers/teacherController');
 
-// All routes require authentication and admin access
 router.use(authMiddleware);
 router.use(adminMiddleware);
 
-// Stats route
 router.get('/stats', getTeacherStats);
 
 // Teacher routes
