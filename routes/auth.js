@@ -8,7 +8,6 @@ router.post("/register", register)
 router.post("/login", login)
 router.get("/me", auth, getMe)
 
-// Role test routes
 router.get("/profile", auth, (req, res) => {
   res.json({
     success: true,

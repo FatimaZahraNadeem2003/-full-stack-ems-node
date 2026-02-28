@@ -5,9 +5,6 @@ const Teacher = require('../models/Teacher');
 const { BadRequestError, NotFoundError } = require('../errors');
 const { StatusCodes } = require('http-status-codes');
 
-// @desc    Search users
-// @route   GET /api/v1/users/search
-// @access  Private
 const searchUsers = asyncHandler(async (req, res) => {
   const { searchQuery, excludeCurrentUser = 'true' } = req.query;
   
@@ -45,9 +42,7 @@ const searchUsers = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get user by ID
-// @route   GET /api/v1/users/:id
-// @access  Private
+
 const getUserById = asyncHandler(async (req, res) => {
   const { id } = req.params;
   
@@ -57,7 +52,6 @@ const getUserById = asyncHandler(async (req, res) => {
     throw new NotFoundError('User not found');
   }
   
-  // Get role-specific details
   let profile = null;
   if (user.role === 'student') {
     profile = await Student.findOne({ userId: user._id });
@@ -74,14 +68,10 @@ const getUserById = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Update user
-// @route   PUT /api/v1/users/:id
-// @access  Private (Admin or own user)
 const updateUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { firstName, lastName, email } = req.body;
   
-  // Check if user is updating their own profile or is admin
   if (req.user.userId !== id && req.user.role !== 'admin') {
     throw new UnauthenticatedError('Not authorized to update this user');
   }
@@ -102,9 +92,6 @@ const updateUser = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Delete user
-// @route   DELETE /api/v1/users/:id
-// @access  Private (Admin only)
 const deleteUser = asyncHandler(async (req, res) => {
   const { id } = req.params;
   
@@ -114,7 +101,6 @@ const deleteUser = asyncHandler(async (req, res) => {
     throw new NotFoundError('User not found');
   }
   
-  // Delete role-specific profile
   if (user.role === 'student') {
     await Student.findOneAndDelete({ userId: user._id });
   } else if (user.role === 'teacher') {
@@ -129,9 +115,6 @@ const deleteUser = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Get all users (with pagination)
-// @route   GET /api/v1/users
-// @access  Private (Admin only)
 const getAllUsers = asyncHandler(async (req, res) => {
   const { page = 1, limit = 10, role } = req.query;
   

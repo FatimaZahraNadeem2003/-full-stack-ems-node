@@ -51,7 +51,6 @@ const register = async (req, res, next) => {
       role: role || 'student', 
     });
   
-    // Create role-specific profile
     if (user.role === 'student') {
       await Student.create({
         userId: user._id,
@@ -118,7 +117,6 @@ const login = async (req, res, next) => {
       throw new UnauthenticatedError(`You are registered as ${user.role}, not as ${role}`);
     }
   
-    // Get role-specific details
     let profile = null;
     if (user.role === 'student') {
       profile = await Student.findOne({ userId: user._id });
@@ -146,9 +144,6 @@ const login = async (req, res, next) => {
   }
 };
 
-// @desc    Get current user profile
-// @route   GET /api/v1/auth/me
-// @access  Private
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.userId).select('-password');
@@ -157,14 +152,12 @@ const getMe = async (req, res) => {
       throw new UnauthenticatedError('User not found');
     }
     
-    // Get role-specific details
     let profile = null;
     if (user.role === 'student') {
       profile = await Student.findOne({ userId: user._id });
     } else if (user.role === 'teacher') {
       profile = await Teacher.findOne({ userId: user._id });
     } else if (user.role === 'admin') {
-      // For admin, get counts
       const studentCount = await Student.countDocuments();
       const teacherCount = await Teacher.countDocuments();
       const courseCount = await require('../models/Course').countDocuments();

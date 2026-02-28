@@ -24,12 +24,11 @@ const userRouter = require('./routes/user');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
-// Security middleware
 app.set('trust proxy', 1);
 app.use(
   rateLimiter({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
+    windowMs: 15 * 60 * 1000, 
+    max: 100, 
     message: 'Too many requests from this IP, please try again after 15 minutes'
   })
 );
@@ -40,15 +39,12 @@ app.use(cors({
 }));
 app.use(xss());
 
-// Body parser
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// API Routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 
-// Health check
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -58,7 +54,6 @@ app.get("/", (req, res) => {
   });
 });
 
-// API documentation route (optional)
 app.get("/api/v1", (req, res) => {
   res.status(200).json({
     success: true,
@@ -83,7 +78,6 @@ app.get("/api/v1", (req, res) => {
   });
 });
 
-// Error handling
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
