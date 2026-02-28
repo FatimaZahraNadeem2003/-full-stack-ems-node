@@ -21,7 +21,6 @@ router.get('/dashboard/stats', adminMiddleware, async (req, res) => {
 });
 
 router.get('/courses/my-courses', teacherMiddleware, async (req, res) => {
-    // Teachers and admins can access
     const courses = await Course.find({ teacherId: req.user.userId });
     res.json({ success: true, data: courses });
 });
