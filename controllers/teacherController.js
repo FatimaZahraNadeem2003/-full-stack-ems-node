@@ -103,7 +103,6 @@ const getAllTeachers = async (req, res) => {
       if (userIds.length > 0) {
         query.userId = { $in: userIds };
       } else {
-        // Also search in teacher fields
         const teacherSearch = await Teacher.find({
           $or: [
             { employeeId: { $regex: search, $options: 'i' } },
