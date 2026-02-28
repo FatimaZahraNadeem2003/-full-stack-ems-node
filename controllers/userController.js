@@ -5,9 +5,7 @@ const Teacher = require('../models/Teacher');
 const { BadRequestError, NotFoundError, UnauthenticatedError } = require('../errors');
 const { StatusCodes } = require('http-status-codes');
 
-// @desc    Search users
-// @route   GET /api/v1/users/search
-// @access  Private
+
 const searchUsers = asyncHandler(async (req, res) => {
   const { searchQuery, excludeCurrentUser = 'true' } = req.query;
   
