@@ -65,7 +65,7 @@ const register = async (req, res, next) => {
         employeeId: rest.employeeId || `TCH${Date.now()}`,
         qualification: rest.qualification || 'Not Specified',
         specialization: rest.specialization || 'Not Specified',
-        contactNumber: rest.contactNumber || ''
+        contactNumber: rest.contactNumber || 'Not Provided'
       });
     }
   

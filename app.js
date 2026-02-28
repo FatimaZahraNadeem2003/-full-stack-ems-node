@@ -85,4 +85,18 @@ app.get("/api/v1", (req, res) => {
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-module.exports = app;
+const port = process.env.PORT || 5000;
+
+const start = async () => {
+  try {
+    await connectDB();
+    app.listen(port, () => {
+      console.log(`✅ Server is running on port ${port}`);
+    });
+  } catch (error) {
+    console.error('❌ Server startup error:', error);
+    process.exit(1);
+  }
+};
+
+start();
