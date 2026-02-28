@@ -214,7 +214,6 @@ const updateTeacher = async (req, res) => {
       if (updateData.firstName) userUpdate.firstName = updateData.firstName;
       if (updateData.lastName) userUpdate.lastName = updateData.lastName;
       if (updateData.email) {
-        // Check if email already exists for other users
         const existingUser = await User.findOne({ 
           email: updateData.email,
           _id: { $ne: teacher.userId }
