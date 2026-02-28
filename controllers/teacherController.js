@@ -193,7 +193,6 @@ const updateTeacher = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Find teacher
     const teacher = await Teacher.findById(id);
     if (!teacher) {
       throw new NotFoundError('Teacher not found');
