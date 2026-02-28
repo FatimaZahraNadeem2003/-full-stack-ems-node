@@ -129,11 +129,7 @@ const getAllStudents = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get single student by ID
- * @route   GET /api/admin/students/:id
- * @access  Private/Admin
- */
+
 const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
