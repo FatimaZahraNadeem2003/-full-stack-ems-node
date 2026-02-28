@@ -24,7 +24,6 @@ router.get('/protected', authMiddleware, (req, res) => {
     });
 });
 
-// Admin only
 router.get('/admin', authMiddleware, adminMiddleware, (req, res) => {
     res.json({ 
         success: true, 
@@ -33,7 +32,6 @@ router.get('/admin', authMiddleware, adminMiddleware, (req, res) => {
     });
 });
 
-// Teacher route
 router.get('/teacher', authMiddleware, teacherMiddleware, (req, res) => {
     res.json({ 
         success: true, 
@@ -42,7 +40,6 @@ router.get('/teacher', authMiddleware, teacherMiddleware, (req, res) => {
     });
 });
 
-// Student route
 router.get('/student', authMiddleware, studentMiddleware, (req, res) => {
     res.json({ 
         success: true, 
@@ -51,7 +48,7 @@ router.get('/student', authMiddleware, studentMiddleware, (req, res) => {
     });
 });
 
-// Staff route
+
 router.get('/staff', authMiddleware, authorize('admin', 'teacher'), (req, res) => {
     res.json({ 
         success: true, 
@@ -82,4 +79,4 @@ router.get('/my-role', authMiddleware, (req, res) => {
     });
 });
 
-module.exports = router;
+module.exports = router;S
