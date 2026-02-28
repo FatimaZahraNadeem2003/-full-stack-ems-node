@@ -96,7 +96,6 @@ const getAllStudents = async (req, res) => {
       if (userIds.length > 0) {
         query.userId = { $in: userIds };
       } else {
-        // No matching users, return empty result
         return res.status(StatusCodes.OK).json({
           success: true,
           count: 0,
