@@ -232,7 +232,6 @@ const updateTeacher = async (req, res) => {
       }
     }
 
-    // Remove user fields from teacher update
     const teacherUpdate = { ...updateData };
     delete teacherUpdate.firstName;
     delete teacherUpdate.lastName;
