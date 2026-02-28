@@ -57,7 +57,6 @@ router.get('/staff', authMiddleware, authorize('admin', 'teacher'), (req, res) =
     });
 });
 
-// Role info
 router.get('/my-role', authMiddleware, (req, res) => {
     const roleInfo = {
         isAdmin: req.user.role === 'admin',
