@@ -29,7 +29,6 @@ const addTeacher = async (req, res) => {
       throw new BadRequestError('Email already in use');
     }
 
-    // Check if employeeId already exists
     const existingTeacher = await Teacher.findOne({ employeeId });
     if (existingTeacher) {
       throw new BadRequestError('Employee ID already exists');
