@@ -24,42 +24,67 @@ const userRouter = require('./routes/user');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
-
+// Security middleware
+app.set('trust proxy', 1);
 app.use(
   rateLimiter({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again after 15 minutes'
   })
 );
 app.use(helmet());
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  credentials: true
+}));
 app.use(xss());
-app.use(express.json());
 
+// Body parser
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// API Routes
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 
+// Health check
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    msg: "API working",
+    msg: "Education Management System API",
+    version: "1.0.0",
+    timestamp: new Date().toISOString()
   });
 });
 
+// API documentation route (optional)
+app.get("/api/v1", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Education Management System API",
+    endpoints: {
+      auth: {
+        register: "POST /api/v1/auth/register",
+        login: "POST /api/v1/auth/login",
+        profile: "GET /api/v1/auth/me",
+        admin: "GET /api/v1/auth/admin",
+        teacher: "GET /api/v1/auth/teacher",
+        student: "GET /api/v1/auth/student"
+      },
+      users: {
+        search: "GET /api/v1/users/search?searchQuery=xyz",
+        getAll: "GET /api/v1/users",
+        getOne: "GET /api/v1/users/:id",
+        update: "PUT /api/v1/users/:id",
+        delete: "DELETE /api/v1/users/:id"
+      }
+    }
+  });
+});
+
+// Error handling
 app.use(notFoundMiddleware);
 app.use(errorHandlerMiddleware);
 
-const port = process.env.PORT || 3000;
-
-const start = async () => {
-  try {
-    await connectDB(process.env.MONGO_URI);
-    app.listen(port, () =>
-      console.log(`Server is listening on port ${port}...`)
-    );
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-start();
+module.exports = app;

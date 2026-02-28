@@ -1,11 +1,12 @@
 const User = require("../models/User");
+const Student = require("../models/Student");
+const Teacher = require("../models/Teacher");
 const { BadRequestError, UnauthenticatedError } = require("../errors");
 const { StatusCodes } = require("http-status-codes");
 
-
 const register = async (req, res, next) => {
   try {
-    const { firstName, lastName, email, password, role } = req.body;
+    const { firstName, lastName, email, password, role, ...rest } = req.body;
   
     if (!firstName || !lastName || !email || !password) {
       throw new BadRequestError("Please provide all values");
@@ -47,29 +48,53 @@ const register = async (req, res, next) => {
       lastName,
       email,
       password,
-      role, 
+      role: role || 'student', 
     });
+  
+    // Create role-specific profile
+    if (user.role === 'student') {
+      await Student.create({
+        userId: user._id,
+        class: rest.class || 'Not Assigned',
+        contactNumber: rest.contactNumber || '',
+        parentName: rest.parentName || '',
+        parentContact: rest.parentContact || ''
+      });
+    } else if (user.role === 'teacher') {
+      await Teacher.create({
+        userId: user._id,
+        employeeId: rest.employeeId || `TCH${Date.now()}`,
+        qualification: rest.qualification || 'Not Specified',
+        specialization: rest.specialization || 'Not Specified',
+        contactNumber: rest.contactNumber || ''
+      });
+    }
   
     const token = user.createJWT();
   
     res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'User registered successfully',
       user: {
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
+        email: user.email,
         role: user.role,
       },
       token,
     });
   } catch (error) {
     if (error.code === 11000) {
-      return res.status(StatusCodes.BAD_REQUEST).json({ msg: 'Email already exists. Please use a different email address.' });
+      return res.status(StatusCodes.BAD_REQUEST).json({ 
+        success: false,
+        msg: 'Email already exists. Please use a different email address.' 
+      });
     }
     
     next(error);
   }
 };
-
 
 const login = async (req, res, next) => {
   try {
@@ -90,19 +115,68 @@ const login = async (req, res, next) => {
     }
   
     if (role && user.role !== role) {
-      throw new UnauthenticatedError("Wrong credentials");
+      throw new UnauthenticatedError(`You are registered as ${user.role}, not as ${role}`);
+    }
+  
+    // Get role-specific details
+    let profile = null;
+    if (user.role === 'student') {
+      profile = await Student.findOne({ userId: user._id });
+    } else if (user.role === 'teacher') {
+      profile = await Teacher.findOne({ userId: user._id });
     }
   
     const token = user.createJWT();
   
     res.status(StatusCodes.OK).json({
+      success: true,
+      message: 'Login successful',
       user: {
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
+        email: user.email,
         role: user.role,
+        profile
       },
       token,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Get current user profile
+// @route   GET /api/v1/auth/me
+// @access  Private
+const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('-password');
+    
+    if (!user) {
+      throw new UnauthenticatedError('User not found');
+    }
+    
+    // Get role-specific details
+    let profile = null;
+    if (user.role === 'student') {
+      profile = await Student.findOne({ userId: user._id });
+    } else if (user.role === 'teacher') {
+      profile = await Teacher.findOne({ userId: user._id });
+    } else if (user.role === 'admin') {
+      // For admin, get counts
+      const studentCount = await Student.countDocuments();
+      const teacherCount = await Teacher.countDocuments();
+      const courseCount = await require('../models/Course').countDocuments();
+      profile = { stats: { studentCount, teacherCount, courseCount } };
+    }
+    
+    res.status(StatusCodes.OK).json({
+      success: true,
+      user: {
+        ...user.toObject(),
+        profile
+      }
     });
   } catch (error) {
     next(error);
@@ -112,4 +186,5 @@ const login = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  getMe
 };
