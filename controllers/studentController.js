@@ -77,7 +77,6 @@ const getAllStudents = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, class: studentClass, status } = req.query;
 
-    // Build query
     const query = {};
     if (studentClass) query.class = studentClass;
     if (status) query.status = status;
