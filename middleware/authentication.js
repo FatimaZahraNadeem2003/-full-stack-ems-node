@@ -2,7 +2,6 @@ const { UnauthenticatedError } = require('../errors');
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = async (req, res, next) => {
-    // Check for token in headers
     const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
