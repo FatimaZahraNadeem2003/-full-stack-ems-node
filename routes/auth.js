@@ -8,7 +8,6 @@ const {
     studentMiddleware 
 } = require('../middleware/authorization')
 
-// Public routes
 router.post("/register", register)
 router.post("/login", login)
 
