@@ -39,7 +39,6 @@ router.get('/profile/:userId',
     }
 );
 
-// Multiple roles example
 router.get('/grades', authorize('admin', 'teacher', 'student'), async (req, res) => {
     let grades;
     if (req.user.role === 'student') {
