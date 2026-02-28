@@ -115,7 +115,6 @@ const getAllTeachers = async (req, res) => {
         if (teacherIds.length > 0) {
           query._id = { $in: teacherIds };
         } else {
-          // No matching results
           return res.status(StatusCodes.OK).json({
             success: true,
             count: 0,
