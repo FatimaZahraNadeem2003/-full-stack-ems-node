@@ -178,7 +178,6 @@ const updateStudent = async (req, res) => {
       throw new NotFoundError('Student not found');
     }
 
-    // Update user data if provided
     if (updateData.firstName || updateData.lastName || updateData.email) {
       const userUpdate = {};
       if (updateData.firstName) userUpdate.firstName = updateData.firstName;
