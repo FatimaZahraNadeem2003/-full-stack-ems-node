@@ -11,7 +11,6 @@ const User = require('../models/User');
 
 router.use(authMiddleware);
 
-// Admin only routes
 router.get('/dashboard/stats', adminMiddleware, async (req, res) => {
     // Only admin can access
     const stats = {
