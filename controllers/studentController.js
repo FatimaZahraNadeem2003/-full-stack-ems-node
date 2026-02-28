@@ -81,7 +81,6 @@ const getAllStudents = async (req, res) => {
     if (studentClass) query.class = studentClass;
     if (status) query.status = status;
 
-    // If search query, find matching users first
     let userIds = [];
     if (search) {
       const users = await User.find({
