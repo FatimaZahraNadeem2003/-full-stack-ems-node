@@ -60,7 +60,6 @@ const CourseSchema = new mongoose.Schema({
     timestamps: true
 });
 
-// Virtual for enrolled students count
 CourseSchema.virtual('enrolledCount', {
     ref: 'Enrollment',
     localField: '_id',
