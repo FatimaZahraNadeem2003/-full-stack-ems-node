@@ -67,7 +67,6 @@ CourseSchema.virtual('enrolledCount', {
     count: true
 });
 
-// Virtual for teacher name
 CourseSchema.virtual('teacherName', {
     ref: 'Teacher',
     localField: 'teacherId',
