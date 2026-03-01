@@ -43,7 +43,6 @@ const createEnrollment = async (req, res) => {
       throw new BadRequestError('Student already enrolled in this course');
     }
 
-    // Check course capacity
     const enrolledCount = await Enrollment.countDocuments({
       courseId,
       status: 'enrolled'
