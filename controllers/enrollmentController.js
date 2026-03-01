@@ -101,13 +101,11 @@ const getAllEnrollments = async (req, res) => {
       search
     } = req.query;
 
-    // Build query
     const query = {};
     if (studentId) query.studentId = studentId;
     if (courseId) query.courseId = courseId;
     if (status) query.status = status;
 
-    // If search query, find matching students first
     if (search) {
       const users = await User.find({
         role: 'student',
@@ -127,10 +125,8 @@ const getAllEnrollments = async (req, res) => {
       }
     }
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Get enrollments with populated data
     const enrollments = await Enrollment.find(query)
       .populate([
         { 
