@@ -63,7 +63,6 @@ const createEnrollment = async (req, res) => {
       remarks
     });
 
-    // Populate data
     await enrollment.populate([
       { 
         path: 'studentId',
