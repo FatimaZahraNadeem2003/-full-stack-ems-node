@@ -16,11 +16,8 @@ const {
   getStudentEnrollments
 } = require('../controllers/enrollmentController');
 
-// Apply authentication to all routes
-router.use(authMiddleware);
-
 // Admin enrollment routes
-router.use('/admin', adminMiddleware);
+router.use('/admin', authMiddleware, adminMiddleware);
 router.post('/admin/bulk', bulkEnroll);
 router.get('/admin/student/:studentId', getStudentCourses);
 router.route('/admin')
@@ -32,15 +29,18 @@ router.route('/admin/:id')
   .delete(deleteEnrollment);
 
 // Teacher enrollment routes
-router.use('/teacher', teacherAuth);
+router.use('/teacher', authMiddleware, teacherAuth);
 router.post('/teacher/enroll', createEnrollment);
 router.delete('/teacher/enroll/:id', deleteEnrollment);
 router.get('/teacher/my-enrollments', getAllEnrollments);
 
 // Student enrollment routes
-router.use('/student', studentAuth);
+router.use('/student', authMiddleware, studentAuth);
 router.post('/student/enroll', selfEnroll);
 router.get('/student/enrollments', getStudentEnrollments);
 router.delete('/student/enrollments/:id', deleteEnrollment);
+
+// Public route for getting enrollment by ID (with appropriate authorization)
+router.get('/:id', authMiddleware, getEnrollmentById);
 
 module.exports = router;
