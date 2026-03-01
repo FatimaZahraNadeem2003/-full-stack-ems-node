@@ -6,6 +6,7 @@ const Course = require('./Course');
 const Schedule = require('./Schedule');
 const Enrollment = require('./Enrollment');
 const Grade = require('./Grade');
+const Remark = require('./Remark'); 
 
 module.exports = {
     User,
@@ -14,5 +15,6 @@ module.exports = {
     Course,
     Schedule,
     Enrollment,
-    Grade
+    Grade,
+    Remark
 };
