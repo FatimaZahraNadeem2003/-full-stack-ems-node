@@ -142,7 +142,6 @@ const getDashboardStats = async (req, res) => {
       ? ((completedEnrollments / totalEnrollments) * 100).toFixed(1)
       : 0;
 
-    // Calculate average students per course
     const avgStudentsPerCourse = totalCourses > 0
       ? (totalEnrollments / totalCourses).toFixed(1)
       : 0;
