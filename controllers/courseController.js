@@ -107,7 +107,6 @@ const getAllCourses = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Get courses with populated teacher data
     const courses = await Course.find(query)
       .populate({
         path: 'teacherId',
