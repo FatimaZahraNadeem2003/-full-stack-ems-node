@@ -40,7 +40,4 @@ router.post('/student/enroll', selfEnroll);
 router.get('/student/enrollments', getStudentEnrollments);
 router.delete('/student/enrollments/:id', deleteEnrollment);
 
-// Public route for getting enrollment by ID (with appropriate authorization)
-router.get('/:id', authMiddleware, getEnrollmentById);
-
 module.exports = router;
