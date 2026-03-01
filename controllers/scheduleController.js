@@ -215,7 +215,6 @@ const updateSchedule = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    // Find schedule
     const schedule = await Schedule.findById(id);
     if (!schedule) {
       throw new NotFoundError('Schedule not found');
