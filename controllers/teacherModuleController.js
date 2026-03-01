@@ -134,7 +134,6 @@ const addGrade = async (req, res) => {
       throw new BadRequestError('Student is not enrolled in this course');
     }
 
-    // Create grade
     const grade = await Grade.create({
       studentId,
       courseId,
