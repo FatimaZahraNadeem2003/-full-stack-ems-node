@@ -105,7 +105,6 @@ const getAllCourses = async (req, res) => {
       ];
     }
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Get courses with populated teacher data
