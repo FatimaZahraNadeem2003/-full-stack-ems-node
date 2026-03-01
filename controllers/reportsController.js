@@ -226,7 +226,6 @@ const getStudentsCount = async (req, res) => {
         { $sort: { count: -1 } }
       ]),
       
-      // Students by gender
       Student.aggregate([
         { $match: query },
         { $group: { 
