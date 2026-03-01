@@ -306,7 +306,6 @@ const getStudentCourses = async (req, res) => {
       ])
       .sort({ createdAt: -1 });
 
-    // Calculate statistics
     const totalCourses = enrollments.length;
     const completedCourses = enrollments.filter(e => e.status === 'completed').length;
     const inProgressCourses = enrollments.filter(e => e.status === 'enrolled').length;
