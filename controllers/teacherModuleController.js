@@ -183,7 +183,6 @@ const updateGrade = async (req, res) => {
       throw new NotFoundError('Grade not found');
     }
 
-    // Verify teacher owns this grade
     if (grade.teacherId.toString() !== teacherId) {
       throw new UnauthorizedError('You are not authorized to update this grade');
     }
