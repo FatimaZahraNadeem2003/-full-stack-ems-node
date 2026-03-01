@@ -51,7 +51,6 @@ const addCourse = async (req, res) => {
       status: status || 'active'
     });
 
-    // Populate teacher details
     await course.populate({
       path: 'teacherId',
       populate: {
