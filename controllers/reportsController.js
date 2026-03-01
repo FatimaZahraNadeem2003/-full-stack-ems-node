@@ -37,7 +37,6 @@ const getDashboardStats = async (req, res) => {
       
       Enrollment.countDocuments({ status: 'enrolled' }),
       
-      // Today's classes
       Schedule.find({ 
         dayOfWeek: todayDay,
         status: 'scheduled'
