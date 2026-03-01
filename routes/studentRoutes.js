@@ -1,25 +1,32 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authentication');
-const { adminMiddleware } = require('../middleware/authorization');
+const { studentMiddleware } = require('../middleware/authorization');
 const {
-  addStudent,
-  getAllStudents,
-  getStudentById,
-  updateStudent,
-  deleteStudent
-} = require('../controllers/studentController');
+  getStudentProfile,
+  updateStudentProfile,
+  getStudentCourses,
+  getStudentCourseDetails,
+  getStudentSchedule,
+  getAllStudentGrades,
+  getCourseWiseGrades,
+  getStudentProgress
+} = require('../controllers/studentModuleController');
 
 router.use(authMiddleware);
-router.use(adminMiddleware);
+router.use(studentMiddleware);
 
-router.route('/')
-  .post(addStudent)
-  .get(getAllStudents);
+router.get('/profile', getStudentProfile);
+router.put('/profile', updateStudentProfile);
 
-router.route('/:id')
-  .get(getStudentById)
-  .put(updateStudent)
-  .delete(deleteStudent);
+router.get('/courses', getStudentCourses);
+router.get('/courses/:courseId', getStudentCourseDetails);
+
+router.get('/schedule', getStudentSchedule);
+
+router.get('/grades', getAllStudentGrades);
+router.get('/grades/course/:courseId', getCourseWiseGrades);
+
+router.get('/progress', getStudentProgress);
 
 module.exports = router;
