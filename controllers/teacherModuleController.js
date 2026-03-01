@@ -18,7 +18,6 @@ const getTeacherCourses = async (req, res) => {
     .select('name code description credits department level status')
     .sort({ createdAt: -1 });
 
-    // Get enrollment counts for each course
     const coursesWithStats = await Promise.all(
       courses.map(async (course) => {
         const enrolledCount = await Enrollment.countDocuments({
