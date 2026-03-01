@@ -129,7 +129,6 @@ const getAllSchedules = async (req, res) => {
     if (academicYear) query.academicYear = academicYear;
     if (status) query.status = status;
 
-    // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     // Get schedules with populated data
