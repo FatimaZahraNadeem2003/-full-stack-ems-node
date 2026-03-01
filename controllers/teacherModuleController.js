@@ -522,7 +522,6 @@ const getStudentRemarks = async (req, res) => {
       ])
       .sort({ createdAt: -1 });
 
-    // Get student info
     const student = await Student.findById(studentId).populate({
       path: 'userId',
       select: 'firstName lastName'
