@@ -131,7 +131,6 @@ const getAllSchedules = async (req, res) => {
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Get schedules with populated data
     const schedules = await Schedule.find(query)
       .populate([
         { path: 'courseId', select: 'name code credits department' },
