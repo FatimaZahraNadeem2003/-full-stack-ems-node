@@ -315,13 +315,11 @@ const assignTeacher = async (req, res) => {
       throw new BadRequestError('Teacher ID is required');
     }
 
-    // Find course
     const course = await Course.findById(courseId);
     if (!course) {
       throw new NotFoundError('Course not found');
     }
 
-    // Find teacher
     const teacher = await Teacher.findById(teacherId).populate({
       path: 'userId',
       select: 'firstName lastName email'
@@ -331,7 +329,6 @@ const assignTeacher = async (req, res) => {
       throw new NotFoundError('Teacher not found');
     }
 
-    // Update course with teacher
     course.teacherId = teacherId;
     await course.save();
 
