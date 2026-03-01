@@ -33,7 +33,6 @@ const createSchedule = async (req, res) => {
       throw new NotFoundError('Teacher not found');
     }
 
-    // Check for scheduling conflicts
     const conflictingSchedule = await Schedule.findOne({
       dayOfWeek,
       room,
