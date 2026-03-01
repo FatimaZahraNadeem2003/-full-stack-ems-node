@@ -450,7 +450,6 @@ const addRemark = async (req, res) => {
     const { studentId, courseId, remark } = req.body;
     const teacherId = req.user.teacherId;
 
-    // Verify student exists
     const student = await Student.findById(studentId);
     if (!student) {
       throw new NotFoundError('Student not found');
