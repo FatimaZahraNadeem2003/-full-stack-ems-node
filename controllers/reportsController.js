@@ -72,7 +72,6 @@ const getDashboardStats = async (req, res) => {
       .sort({ createdAt: -1 })
       .limit(10),
       
-      // Most popular courses (by enrollment)
       Enrollment.aggregate([
         { $match: { status: 'enrolled' } },
         { $group: { 
