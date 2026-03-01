@@ -8,7 +8,6 @@ const { StatusCodes } = require('http-status-codes');
  */
 const getDashboardStats = async (req, res) => {
   try {
-    // Get current date for today's classes
     const today = new Date();
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
     const todayDay = days[today.getDay()];
