@@ -382,7 +382,6 @@ const getCourseStats = async (req, res) => {
       { $sort: { count: -1 } }
     ]);
 
-    // Top courses by enrollment
     const Enrollment = require('../models/Enrollment');
     const topCourses = await Enrollment.aggregate([
       { $match: { status: 'enrolled' } },
