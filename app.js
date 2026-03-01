@@ -21,7 +21,7 @@ const connectDB = require("./db/connect");
 
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
-const testRoutes = require('./routes/test'); 
+const testRoutes = require('./routes/test');
 
 const studentRoutes = require('./routes/studentRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
@@ -29,8 +29,6 @@ const courseRoutes = require('./routes/courseRoutes');
 const scheduleRoutes = require('./routes/scheduleRoutes');
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
 const reportsRoutes = require('./routes/reportsRoutes');
-const teacherRoutes = require('./routes/teacherRoutes');
-const studentRoutes = require('./routes/studentRoutes');
 
 const accountRoutes = require('./routes/accountRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
@@ -46,8 +44,8 @@ const errorHandlerMiddleware = require('./middleware/error-handler');
 app.set('trust proxy', 1);
 app.use(
   rateLimiter({
-    windowMs: 15 * 60 * 1000, 
-    max: 100, 
+    windowMs: 15 * 60 * 1000,
+    max: 100,
     message: 'Too many requests from this IP, please try again after 15 minutes'
   })
 );
@@ -57,7 +55,6 @@ app.use(cors({
   credentials: true
 }));
 app.use(xss());
-
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -71,6 +68,7 @@ app.use("/api/admin/courses", courseRoutes);
 app.use("/api/admin/schedules", scheduleRoutes);
 app.use("/api/admin/enrollments", enrollmentRoutes);
 app.use("/api/admin/reports", reportsRoutes);
+
 app.use("/api/teacher", teacherRoutes);
 app.use("/api/student", studentRoutes);
 

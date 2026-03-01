@@ -2,7 +2,6 @@ const { Teacher, User } = require('../models');
 const { BadRequestError, NotFoundError } = require('../errors');
 const { StatusCodes } = require('http-status-codes');
 
-
 const addTeacher = async (req, res) => {
   try {
     const { 
@@ -38,7 +37,7 @@ const addTeacher = async (req, res) => {
       firstName,
       lastName,
       email,
-      password: password || 'teacher123', // Default password if not provided
+      password: password || 'teacher123',
       role: 'teacher'
     });
 
@@ -75,11 +74,6 @@ const addTeacher = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get all teachers
- * @route   GET /api/admin/teachers
- * @access  Private/Admin
- */
 const getAllTeachers = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, specialization, status } = req.query;
@@ -154,11 +148,6 @@ const getAllTeachers = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get single teacher by ID
- * @route   GET /api/admin/teachers/:id
- * @access  Private/Admin
- */
 const getTeacherById = async (req, res) => {
   try {
     const { id } = req.params;
@@ -183,11 +172,6 @@ const getTeacherById = async (req, res) => {
   }
 };
 
-/**
- * @desc    Update teacher
- * @route   PUT /api/admin/teachers/:id
- * @access  Private/Admin
- */
 const updateTeacher = async (req, res) => {
   try {
     const { id } = req.params;
@@ -208,7 +192,6 @@ const updateTeacher = async (req, res) => {
       }
     }
 
-    
     if (updateData.firstName || updateData.lastName || updateData.email) {
       const userUpdate = {};
       if (updateData.firstName) userUpdate.firstName = updateData.firstName;
@@ -262,11 +245,6 @@ const updateTeacher = async (req, res) => {
   }
 };
 
-/**
- * @desc    Delete teacher
- * @route   DELETE /api/admin/teachers/:id
- * @access  Private/Admin
- */
 const deleteTeacher = async (req, res) => {
   try {
     const { id } = req.params;
@@ -283,7 +261,6 @@ const deleteTeacher = async (req, res) => {
     }
 
     await User.findByIdAndDelete(teacher.userId);
-
     await teacher.deleteOne();
 
     res.status(StatusCodes.OK).json({
@@ -296,11 +273,6 @@ const deleteTeacher = async (req, res) => {
   }
 };
 
-/**
- * @desc    Get teacher statistics
- * @route   GET /api/admin/teachers/stats/summary
- * @access  Private/Admin
- */
 const getTeacherStats = async (req, res) => {
   try {
     const totalTeachers = await Teacher.countDocuments();

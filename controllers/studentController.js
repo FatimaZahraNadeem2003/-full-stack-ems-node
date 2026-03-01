@@ -22,7 +22,6 @@ const addStudent = async (req, res) => {
       status
     } = req.body;
 
-
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       throw new BadRequestError('Email already in use');
@@ -32,7 +31,7 @@ const addStudent = async (req, res) => {
       firstName,
       lastName,
       email,
-      password: password || 'student123', // Default password if not provided
+      password: password || 'student123',
       role: 'student'
     });
 
@@ -66,7 +65,6 @@ const addStudent = async (req, res) => {
     throw error;
   }
 };
-
 
 const getAllStudents = async (req, res) => {
   try {
@@ -128,7 +126,6 @@ const getAllStudents = async (req, res) => {
     throw error;
   }
 };
-
 
 const getStudentById = async (req, res) => {
   try {
@@ -207,7 +204,6 @@ const updateStudent = async (req, res) => {
   }
 };
 
-
 const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
@@ -218,7 +214,6 @@ const deleteStudent = async (req, res) => {
     }
 
     await User.findByIdAndDelete(student.userId);
-
     await student.deleteOne();
 
     res.status(StatusCodes.OK).json({
