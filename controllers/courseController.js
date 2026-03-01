@@ -119,7 +119,6 @@ const getAllCourses = async (req, res) => {
       .skip(skip)
       .limit(parseInt(limit));
 
-    // Get enrollment counts for each course
     const Enrollment = require('../models/Enrollment');
     const coursesWithCounts = await Promise.all(
       courses.map(async (course) => {
