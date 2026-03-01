@@ -53,7 +53,6 @@ const getCourseStudents = async (req, res) => {
     const { courseId } = req.params;
     const teacherId = req.user.teacherId;
 
-    // Verify course belongs to teacher
     const course = await Course.findOne({ _id: courseId, teacherId });
     if (!course) {
       throw new UnauthorizedError('You are not authorized to view this course');
