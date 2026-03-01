@@ -36,7 +36,6 @@ const addCourse = async (req, res) => {
       }
     }
 
-    // Create course
     const course = await Course.create({
       name,
       code,
