@@ -119,7 +119,6 @@ const addGrade = async (req, res) => {
 
     const teacherId = req.user.teacherId;
 
-    // Verify course belongs to teacher
     const course = await Course.findOne({ _id: courseId, teacherId });
     if (!course) {
       throw new UnauthorizedError('You are not authorized to grade this course');
