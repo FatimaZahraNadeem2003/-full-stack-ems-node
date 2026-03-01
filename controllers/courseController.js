@@ -234,7 +234,6 @@ const updateCourse = async (req, res) => {
       }
     }
 
-    // Update course
     const updatedCourse = await Course.findByIdAndUpdate(
       id,
       updateData,
