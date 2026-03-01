@@ -8,16 +8,19 @@ const getDashboardStats = async (req, res) => {
 
     if (role === 'admin') {
       // Admin dashboard stats
+      const StudentModel = require('../models').Student;
+      const TeacherModel = require('../models').Teacher;
+      
       const [
         totalStudents,
         totalTeachers,
         totalCourses,
         totalEnrollments
       ] = await Promise.all([
-        require('../models').Student.countDocuments(),
-        require('../models').Teacher.countDocuments(),
-        require('../models').Course.countDocuments(),
-        require('../models').Enrollment.countDocuments()
+        StudentModel.countDocuments(),
+        TeacherModel.countDocuments(),
+        Course.countDocuments(),
+        Enrollment.countDocuments()
       ]);
 
       stats = {
