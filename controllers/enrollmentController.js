@@ -217,7 +217,6 @@ const updateEnrollment = async (req, res) => {
       throw new NotFoundError('Enrollment not found');
     }
 
-    // If marking as completed, set completion date
     if (updateData.status === 'completed' && enrollment.status !== 'completed') {
       updateData.completionDate = Date.now();
     }
