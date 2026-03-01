@@ -284,7 +284,6 @@ const deleteCourse = async (req, res) => {
       throw new BadRequestError('Cannot delete course with enrolled students. Please remove students first.');
     }
 
-    // Delete all related enrollments (pending/dropped)
     await Enrollment.deleteMany({ courseId: id });
 
     // Delete all related grades
