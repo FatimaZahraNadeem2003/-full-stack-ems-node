@@ -383,6 +383,125 @@ const bulkEnroll = async (req, res) => {
   }
 };
 
+const selfEnroll = async (req, res) => {
+  try {
+    const studentId = req.user.studentId;
+    const { courseId } = req.body;
+
+    if (!courseId) {
+      throw new BadRequestError('Course ID is required');
+    }
+
+    const student = await Student.findById(studentId).populate({
+      path: 'userId',
+      select: 'firstName lastName email'
+    });
+    if (!student) {
+      throw new NotFoundError('Student not found');
+    }
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      throw new NotFoundError('Course not found');
+    }
+
+    const existingEnrollment = await Enrollment.findOne({
+      studentId,
+      courseId,
+      status: { $in: ['enrolled', 'completed'] }
+    });
+
+    if (existingEnrollment) {
+      throw new BadRequestError('You are already enrolled in this course');
+    }
+
+    const enrolledCount = await Enrollment.countDocuments({
+      courseId,
+      status: 'enrolled'
+    });
+
+    if (enrolledCount >= course.maxStudents) {
+      throw new BadRequestError('Course has reached maximum capacity');
+    }
+
+    const enrollment = await Enrollment.create({
+      studentId,
+      courseId,
+      enrollmentDate: Date.now(),
+      status: 'enrolled',
+      progress: 0
+    });
+
+    await enrollment.populate([
+      { 
+        path: 'studentId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName email'
+        }
+      },
+      { path: 'courseId', select: 'name code credits department' }
+    ]);
+
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'Successfully enrolled in course',
+      data: enrollment
+    });
+  } catch (error) {
+    console.error('Self enrollment error:', error);
+    throw error;
+  }
+};
+
+const getStudentEnrollments = async (req, res) => {
+  try {
+    const studentId = req.user.studentId;
+    const { status } = req.query;
+
+    const query = { studentId };
+    if (status) query.status = status;
+
+    const enrollments = await Enrollment.find(query)
+      .populate([
+        { path: 'courseId', select: 'name code credits department' },
+        { 
+          path: 'courseId',
+          populate: {
+            path: 'teacherId',
+            populate: {
+              path: 'userId',
+              select: 'firstName lastName'
+            }
+          }
+        }
+      ])
+      .sort({ createdAt: -1 });
+
+    const totalCourses = enrollments.length;
+    const completedCourses = enrollments.filter(e => e.status === 'completed').length;
+    const inProgressCourses = enrollments.filter(e => e.status === 'enrolled').length;
+    
+    const avgProgress = enrollments.reduce((acc, e) => acc + (e.progress || 0), 0) / totalCourses || 0;
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      data: {
+        statistics: {
+          totalCourses,
+          completedCourses,
+          inProgressCourses,
+          averageProgress: Math.round(avgProgress)
+        },
+        enrollments
+      }
+    });
+  } catch (error) {
+    console.error('Get student enrollments error:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   createEnrollment,
   getAllEnrollments,
@@ -390,5 +509,7 @@ module.exports = {
   updateEnrollment,
   deleteEnrollment,
   getStudentCourses,
-  bulkEnroll
+  bulkEnroll,
+  selfEnroll,
+  getStudentEnrollments
 };
