@@ -121,7 +121,6 @@ const getAllSchedules = async (req, res) => {
       endDate
     } = req.query;
 
-    // Build query
     const query = {};
     if (dayOfWeek) query.dayOfWeek = dayOfWeek;
     if (courseId) query.courseId = courseId;
