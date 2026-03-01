@@ -292,7 +292,6 @@ const getStudentGrades = async (req, res) => {
     const { studentId } = req.params;
     const teacherId = req.user.teacherId;
 
-    // Get courses taught by this teacher
     const teacherCourses = await Course.find({ teacherId }).distinct('_id');
 
     const grades = await Grade.find({
