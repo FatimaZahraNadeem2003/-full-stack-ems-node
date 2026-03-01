@@ -79,7 +79,6 @@ const createSchedule = async (req, res) => {
       status: status || 'scheduled'
     });
 
-    // Populate related data
     await schedule.populate([
       { path: 'courseId', select: 'name code credits' },
       { 
