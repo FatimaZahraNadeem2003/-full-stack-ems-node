@@ -221,7 +221,6 @@ const updateEnrollment = async (req, res) => {
       updateData.completionDate = Date.now();
     }
 
-    // Update enrollment
     const updatedEnrollment = await Enrollment.findByIdAndUpdate(
       id,
       updateData,
