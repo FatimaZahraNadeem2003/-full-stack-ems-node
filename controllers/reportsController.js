@@ -27,7 +27,6 @@ const getDashboardStats = async (req, res) => {
     ] = await Promise.all([
       Student.countDocuments(),
       
-      // Total teachers
       Teacher.countDocuments(),
       
       // Total courses
