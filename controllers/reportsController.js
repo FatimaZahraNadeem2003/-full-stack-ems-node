@@ -216,7 +216,6 @@ const getStudentsCount = async (req, res) => {
       
       Student.countDocuments({ ...query, status: 'suspended' }),
       
-      // Students by class
       Student.aggregate([
         { $match: query },
         { $group: { 
