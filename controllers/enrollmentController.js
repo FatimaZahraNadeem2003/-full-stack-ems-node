@@ -283,17 +283,14 @@ const getStudentCourses = async (req, res) => {
     const { studentId } = req.params;
     const { status } = req.query;
 
-    // Validate student exists
     const student = await Student.findById(studentId);
     if (!student) {
       throw new NotFoundError('Student not found');
     }
 
-    // Build query
     const query = { studentId };
     if (status) query.status = status;
 
-    // Get enrollments
     const enrollments = await Enrollment.find(query)
       .populate([
         { 
