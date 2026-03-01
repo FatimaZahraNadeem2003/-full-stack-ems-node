@@ -1,28 +1,35 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authentication');
-const { adminMiddleware } = require('../middleware/authorization');
+const { teacherMiddleware } = require('../middleware/authorization');
 const {
-  addTeacher,
-  getAllTeachers,
-  getTeacherById,
-  updateTeacher,
-  deleteTeacher,
-  getTeacherStats
-} = require('../controllers/teacherController');
+  getTeacherCourses,
+  getCourseStudents,
+  addGrade,
+  updateGrade,
+  getCourseGrades,
+  getStudentGrades,
+  getTeacherSchedule,
+  updateSchedule,
+  addRemark,
+  getStudentRemarks
+} = require('../controllers/teacherModuleController');
 
 router.use(authMiddleware);
-router.use(adminMiddleware);
+router.use(teacherMiddleware);
 
-router.get('/stats', getTeacherStats);
+router.get('/courses', getTeacherCourses);
+router.get('/courses/:courseId/students', getCourseStudents);
 
-router.route('/')
-  .post(addTeacher)
-  .get(getAllTeachers);
+router.post('/grades', addGrade);
+router.put('/grades/:id', updateGrade);
+router.get('/grades/course/:courseId', getCourseGrades);
+router.get('/grades/student/:studentId', getStudentGrades);
 
-router.route('/:id')
-  .get(getTeacherById)
-  .put(updateTeacher)
-  .delete(deleteTeacher);
+router.get('/schedules', getTeacherSchedule);
+router.put('/schedules/:id', updateSchedule);
+
+router.post('/remarks', addRemark);
+router.get('/remarks/student/:studentId', getStudentRemarks);
 
 module.exports = router;
