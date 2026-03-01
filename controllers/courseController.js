@@ -377,7 +377,6 @@ const getCourseStats = async (req, res) => {
       { $sort: { count: -1 } }
     ]);
 
-    // Courses by level
     const byLevel = await Course.aggregate([
       { $group: { _id: '$level', count: { $sum: 1 } } },
       { $sort: { count: -1 } }
