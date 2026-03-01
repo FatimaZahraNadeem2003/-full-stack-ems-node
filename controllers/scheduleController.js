@@ -235,7 +235,6 @@ const updateSchedule = async (req, res) => {
         ]
       };
 
-      // Room conflict
       if (updateData.room || schedule.room) {
         const roomConflict = await Schedule.findOne({
           ...conflictQuery,
