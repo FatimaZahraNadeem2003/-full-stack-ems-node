@@ -665,5 +665,6 @@ module.exports = {
   updateSchedule,
   addRemark,
   getStudentRemarks,
+  getTeacherProfile,
   updateTeacherProfile
 };
