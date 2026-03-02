@@ -38,6 +38,7 @@ const notificationRoutes = require('./routes/notificationRoutes');
 const libraryRoutes = require('./routes/libraryRoutes');
 const feeRoutes = require('./routes/feeRoutes');
 
+const { adminMiddleware, teacherAuth, studentAuth } = require('./middleware/authorization');
 const notFoundMiddleware = require('./middleware/not-found');
 const errorHandlerMiddleware = require('./middleware/error-handler');
 
@@ -61,17 +62,20 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/test", testRoutes);
 
+app.use("/api/admin", adminMiddleware);
 app.use("/api/admin/students", studentRoutes);
 app.use("/api/admin/teachers", teacherRoutes);
 app.use("/api/admin/courses", courseRoutes);
 app.use("/api/admin/schedules", scheduleRoutes);
 app.use("/api/admin/enrollments", enrollmentRoutes);
-app.use("/api/teacher/enrollments", enrollmentRoutes);
-app.use("/api/student/enrollments", enrollmentRoutes);
 app.use("/api/admin/reports", reportsRoutes);
 
+app.use("/api/teacher", teacherAuth);
 app.use("/api/teacher", teacherRoutes);
+
+app.use("/api/student", studentAuth);
 app.use("/api/student", studentRoutes);
 
 app.use("/api/account", accountRoutes);
@@ -81,8 +85,6 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/library", libraryRoutes);
 app.use("/api/fees", feeRoutes);
-
-app.use("/api/v1/test", testRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({
@@ -101,10 +103,7 @@ app.get("/api/v1", (req, res) => {
       auth: {
         register: "POST /api/v1/auth/register",
         login: "POST /api/v1/auth/login",
-        profile: "GET /api/v1/auth/me",
-        admin: "GET /api/v1/auth/admin",
-        teacher: "GET /api/v1/auth/teacher",
-        student: "GET /api/v1/auth/student"
+        profile: "GET /api/v1/auth/me"
       },
       users: {
         search: "GET /api/v1/users/search?searchQuery=xyz",
