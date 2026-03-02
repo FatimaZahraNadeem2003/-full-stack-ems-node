@@ -37,4 +37,7 @@ router.put('/schedules/:id', updateSchedule);
 router.post('/remarks', addRemark);
 router.get('/remarks/student/:studentId', getStudentRemarks);
 
+router.get('/profile', getTeacherProfile);
+router.put('/profile', updateTeacherProfile);
+
 module.exports = router;
