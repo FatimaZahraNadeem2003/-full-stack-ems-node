@@ -69,17 +69,16 @@ app.use("/api/v1/test", testRoutes);
 
 app.use("/api/v1/admin", authMiddleware, adminMiddleware);
 app.use("/api/v1/admin/students", studentRoutes);
-app.use("/api/v1/admin/teachers", teacherRoutes);
 app.use("/api/v1/admin/courses", courseRoutes);
 app.use("/api/v1/admin/schedules", scheduleRoutes);
-app.use("/api/v1/teacher/schedules", scheduleRoutes);
 app.use("/api/v1/admin/enrollments", enrollmentRoutes);
 app.use("/api/v1/admin/reports", reportsRoutes);
 
-app.use("/api/v1/teacher", teacherAuth);
 app.use("/api/v1/teacher", teacherRoutes);
+app.use("/api/v1/teacher/schedules", scheduleRoutes);
 
-app.use("/api/v1/student", studentAuth);
+app.use("/api/v1/admin/teachers", teacherRoutes);
+
 app.use("/api/v1/student", studentRoutes);
 
 app.use("/api/v1/account", accountRoutes);

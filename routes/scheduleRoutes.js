@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authentication');
-const { adminMiddleware, teacherAuth } = require('../middleware/authorization');
+const { adminMiddleware } = require('../middleware/authorization');
 const {
   createSchedule,
   getAllSchedules,
@@ -12,6 +12,7 @@ const {
 } = require('../controllers/scheduleController');
 
 router.use(authMiddleware, adminMiddleware);
+
 router.get('/weekly', getWeeklySchedule);
 router.route('/')
   .post(createSchedule)
