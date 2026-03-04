@@ -59,9 +59,16 @@ const addStudent = async (req, res) => {
     });
   } catch (error) {
     console.error('Add student error:', error);
+    
     if (error.code === 11000) {
       throw new BadRequestError('Roll number already exists');
     }
+    
+    if (error.name === 'ValidationError') {
+      const messages = Object.values(error.errors).map(err => err.message);
+      throw new BadRequestError(messages.join(', '));
+    }
+    
     throw error;
   }
 };
@@ -70,13 +77,10 @@ const getAllStudents = async (req, res) => {
   try {
     const { page = 1, limit = 10, search, class: studentClass, status } = req.query;
 
-    console.log('🔍 Get All Students - Query:', { page, limit, search, studentClass, status });
-
     const query = {};
     if (studentClass) query.class = studentClass;
     if (status) query.status = status;
 
-    let userIds = [];
     if (search) {
       const users = await User.find({
         role: 'student',
@@ -87,25 +91,30 @@ const getAllStudents = async (req, res) => {
         ]
       }).select('_id');
       
-      userIds = users.map(u => u._id);
+      const userIds = users.map(u => u._id);
       if (userIds.length > 0) {
         query.userId = { $in: userIds };
       } else {
-        console.log('⚠️ No users found matching search');
-        return res.status(StatusCodes.OK).json({
-          success: true,
-          count: 0,
-          total: 0,
-          page: parseInt(page),
-          pages: 0,
-          data: []
-        });
+        const studentsByRoll = await Student.find({
+          rollNumber: { $regex: search, $options: 'i' }
+        }).select('_id');
+        
+        if (studentsByRoll.length > 0) {
+          query._id = { $in: studentsByRoll.map(s => s._id) };
+        } else {
+          return res.status(StatusCodes.OK).json({
+            success: true,
+            count: 0,
+            total: 0,
+            page: parseInt(page),
+            pages: 0,
+            data: []
+          });
+        }
       }
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
-    
-    console.log('📊 Final query:', JSON.stringify(query));
     
     const students = await Student.find(query)
       .populate({
@@ -118,8 +127,6 @@ const getAllStudents = async (req, res) => {
 
     const total = await Student.countDocuments(query);
 
-    console.log(`✅ Found ${students.length} students out of ${total} total`);
-
     res.status(StatusCodes.OK).json({
       success: true,
       count: students.length,
@@ -129,14 +136,21 @@ const getAllStudents = async (req, res) => {
       data: students
     });
   } catch (error) {
-    console.error('❌ Get all students error:', error);
-    throw error;
+    console.error('Get all students error:', error);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      msg: 'Failed to fetch students'
+    });
   }
 };
 
 const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new BadRequestError('Invalid student ID format');
+    }
 
     const student = await Student.findById(id)
       .populate({
@@ -154,6 +168,14 @@ const getStudentById = async (req, res) => {
     });
   } catch (error) {
     console.error('Get student by id error:', error);
+    
+    if (error.name === 'CastError') {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        success: false,
+        msg: 'Invalid student ID format'
+      });
+    }
+    
     throw error;
   }
 };
@@ -162,6 +184,10 @@ const updateStudent = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new BadRequestError('Invalid student ID format');
+    }
 
     const student = await Student.findById(id);
     if (!student) {
@@ -204,9 +230,11 @@ const updateStudent = async (req, res) => {
     });
   } catch (error) {
     console.error('Update student error:', error);
+    
     if (error.code === 11000) {
       throw new BadRequestError('Roll number already exists');
     }
+    
     throw error;
   }
 };
@@ -214,6 +242,10 @@ const updateStudent = async (req, res) => {
 const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new BadRequestError('Invalid student ID format');
+    }
 
     const student = await Student.findById(id);
     if (!student) {
