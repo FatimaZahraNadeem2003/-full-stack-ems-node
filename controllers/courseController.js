@@ -251,7 +251,7 @@ const updateCourse = async (req, res) => {
     const updatedCourse = await Course.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).populate({
       path: 'teacherId',
       populate: {

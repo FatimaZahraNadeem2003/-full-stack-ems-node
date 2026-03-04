@@ -209,7 +209,7 @@ const updateTeacher = async (req, res) => {
 
       if (Object.keys(userUpdate).length > 0) {
         await User.findByIdAndUpdate(teacher.userId, userUpdate, {
-          new: true,
+          returnDocument: 'after',
           runValidators: true
         });
       }
@@ -224,7 +224,7 @@ const updateTeacher = async (req, res) => {
     const updatedTeacher = await Teacher.findByIdAndUpdate(
       id,
       teacherUpdate,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).populate({
       path: 'userId',
       select: '-password'

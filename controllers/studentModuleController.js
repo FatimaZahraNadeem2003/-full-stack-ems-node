@@ -85,7 +85,7 @@ const updateStudentProfile = async (req, res) => {
     const updatedStudent = await Student.findByIdAndUpdate(
       studentId,
       allowedUpdates,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).populate({
       path: 'userId',
       select: '-password'

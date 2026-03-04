@@ -301,7 +301,7 @@ const updateSchedule = async (req, res) => {
     const updatedSchedule = await Schedule.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).populate([
       { path: 'courseId', select: 'name code credits' },
       { 

@@ -266,7 +266,7 @@ const updateEnrollment = async (req, res) => {
     const updatedEnrollment = await Enrollment.findByIdAndUpdate(
       id,
       updateData,
-      { new: true, runValidators: true }
+      { returnDocument: 'after', runValidators: true }
     ).populate([
       { 
         path: 'studentId',
