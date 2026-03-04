@@ -11,7 +11,8 @@ const {
   getWeeklySchedule
 } = require('../controllers/scheduleController');
 
-router.use(authMiddleware, adminMiddleware);
+router.use(authMiddleware);
+router.use(adminMiddleware);
 
 router.get('/weekly', getWeeklySchedule);
 router.route('/')

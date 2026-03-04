@@ -50,9 +50,9 @@ router.put('/profile', authMiddleware, teacherAuth, updateTeacherProfile);
 
 router.post('/', authMiddleware, adminMiddleware, addTeacher);
 router.get('/', authMiddleware, adminMiddleware, getAllTeachers);
+router.get('/stats', authMiddleware, adminMiddleware, getTeacherStats);
 router.get('/:id', authMiddleware, adminMiddleware, getTeacherById);
 router.put('/:id', authMiddleware, adminMiddleware, updateTeacher);
 router.delete('/:id', authMiddleware, adminMiddleware, deleteTeacher);
-router.get('/stats', authMiddleware, adminMiddleware, getTeacherStats);
 
 module.exports = router;

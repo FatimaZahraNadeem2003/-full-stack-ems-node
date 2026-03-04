@@ -129,18 +129,16 @@ const getStudentCourses = async (req, res) => {
     .sort({ createdAt: -1 });
 
     const courses = enrollments.map(enrollment => ({
+      _id: enrollment.courseId?._id,
       enrollmentId: enrollment._id,
-      course: {
-        id: enrollment.courseId._id,
-        name: enrollment.courseId.name,
-        code: enrollment.courseId.code,
-        description: enrollment.courseId.description,
-        credits: enrollment.courseId.credits,
-        department: enrollment.courseId.department,
-        level: enrollment.courseId.level
-      },
-      teacher: enrollment.courseId.teacherId ? {
-        name: `${enrollment.courseId.teacherId.userId.firstName} ${enrollment.courseId.teacherId.userId.lastName}`,
+      name: enrollment.courseId?.name,
+      code: enrollment.courseId?.code,
+      description: enrollment.courseId?.description,
+      credits: enrollment.courseId?.credits,
+      department: enrollment.courseId?.department,
+      level: enrollment.courseId?.level,
+      teacher: enrollment.courseId?.teacherId ? {
+        name: `${enrollment.courseId.teacherId.userId?.firstName} ${enrollment.courseId.teacherId.userId?.lastName}`,
         specialization: enrollment.courseId.teacherId.specialization
       } : null,
       progress: enrollment.progress,
@@ -354,7 +352,7 @@ const getAllStudentGrades = async (req, res) => {
         totalGrades,
         overallPercentage: overallPercentage.toFixed(1),
         totalCourses: Object.keys(byCourse).length,
-        gpa: (overallPercentage / 25).toFixed(2) 
+        gpa: (overallPercentage / 25).toFixed(2)
       },
       data: Object.values(byCourse)
     });
@@ -510,6 +508,125 @@ const getStudentProgress = async (req, res) => {
   }
 };
 
+const getAvailableCourses = async (req, res) => {
+  try {
+    const studentId = req.user.studentId;
+
+    const availableCourses = await Course.find({ 
+      status: 'active' 
+    })
+    .populate({
+      path: 'teacherId',
+      populate: {
+        path: 'userId',
+        select: 'firstName lastName'
+      }
+    })
+    .select('name code description credits department level duration maxStudents status teacherId');
+
+    const enrollments = await Enrollment.find({ 
+      studentId,
+      status: { $in: ['enrolled', 'completed'] }
+    }).select('courseId');
+
+    const enrolledCourseIds = enrollments.map(e => e.courseId.toString());
+
+    const filteredCourses = availableCourses.filter(
+      course => !enrolledCourseIds.includes(course._id.toString())
+    );
+
+    const coursesWithCounts = await Promise.all(
+      filteredCourses.map(async (course) => {
+        const enrolledCount = await Enrollment.countDocuments({
+          courseId: course._id,
+          status: 'enrolled'
+        });
+        
+        return {
+          ...course.toObject(),
+          enrolledCount
+        };
+      })
+    );
+
+    res.status(StatusCodes.OK).json({
+      success: true,
+      count: coursesWithCounts.length,
+      data: coursesWithCounts
+    });
+  } catch (error) {
+    console.error('Get available courses error:', error);
+    throw error;
+  }
+};
+
+const enrollInCourse = async (req, res) => {
+  try {
+    const studentId = req.user.studentId;
+    const { courseId } = req.body;
+
+    if (!courseId) {
+      throw new BadRequestError('Course ID is required');
+    }
+
+    const course = await Course.findById(courseId);
+    if (!course) {
+      throw new NotFoundError('Course not found');
+    }
+
+    if (course.status !== 'active') {
+      throw new BadRequestError('This course is not available for enrollment');
+    }
+
+    const existingEnrollment = await Enrollment.findOne({
+      studentId,
+      courseId,
+      status: { $in: ['enrolled', 'completed'] }
+    });
+
+    if (existingEnrollment) {
+      throw new BadRequestError('You are already enrolled in this course');
+    }
+
+    const enrolledCount = await Enrollment.countDocuments({
+      courseId,
+      status: 'enrolled'
+    });
+
+    if (enrolledCount >= course.maxStudents) {
+      throw new BadRequestError('Course has reached maximum capacity');
+    }
+
+    const enrollment = await Enrollment.create({
+      studentId,
+      courseId,
+      enrollmentDate: Date.now(),
+      status: 'enrolled',
+      progress: 0
+    });
+
+    await enrollment.populate([
+      { 
+        path: 'studentId',
+        populate: {
+          path: 'userId',
+          select: 'firstName lastName email'
+        }
+      },
+      { path: 'courseId', select: 'name code credits department' }
+    ]);
+
+    res.status(StatusCodes.CREATED).json({
+      success: true,
+      message: 'Successfully enrolled in course',
+      data: enrollment
+    });
+  } catch (error) {
+    console.error('Enroll in course error:', error);
+    throw error;
+  }
+};
+
 module.exports = {
   getStudentProfile,
   updateStudentProfile,
@@ -518,5 +635,7 @@ module.exports = {
   getStudentSchedule,
   getAllStudentGrades,
   getCourseWiseGrades,
-  getStudentProgress
+  getStudentProgress,
+  getAvailableCourses,
+  enrollInCourse
 };

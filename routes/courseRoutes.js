@@ -21,7 +21,6 @@ router.use(authMiddleware);
 router.use(adminMiddleware);
 
 router.get('/stats', getCourseStats);
-
 router.post('/:courseId/assign-teacher', validateAssignTeacher, assignTeacher);
 
 router.route('/')
