@@ -67,17 +67,14 @@ app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/test", testRoutes);
 
-app.use("/api/v1/admin", authMiddleware, adminMiddleware);
 app.use("/api/v1/admin/students", studentRoutes);
 app.use("/api/v1/admin/courses", courseRoutes);
 app.use("/api/v1/admin/schedules", scheduleRoutes);
 app.use("/api/v1/admin/enrollments", enrollmentRoutes);
 app.use("/api/v1/admin/reports", reportsRoutes);
+app.use("/api/v1/admin/teachers", teacherRoutes);
 
 app.use("/api/v1/teacher", teacherRoutes);
-app.use("/api/v1/teacher/schedules", scheduleRoutes);
-
-app.use("/api/v1/admin/teachers", teacherRoutes);
 
 app.use("/api/v1/student", studentRoutes);
 
@@ -109,13 +106,6 @@ app.get("/api/v1", (req, res) => {
         register: "POST /api/v1/auth/register",
         login: "POST /api/v1/auth/login",
         profile: "GET /api/v1/auth/me"
-      },
-      users: {
-        search: "GET /api/v1/users/search?searchQuery=xyz",
-        getAll: "GET /api/v1/users",
-        getOne: "GET /api/v1/users/:id",
-        update: "PUT /api/v1/users/:id",
-        delete: "DELETE /api/v1/users/:id"
       }
     }
   });

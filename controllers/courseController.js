@@ -138,7 +138,8 @@ const getAllCourses = async (req, res) => {
       })
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(parseInt(limit))
+      .lean();
 
     const Enrollment = require('../models/Enrollment');
     const coursesWithCounts = await Promise.all(
@@ -148,7 +149,7 @@ const getAllCourses = async (req, res) => {
           status: 'enrolled'
         });
         return {
-          ...course.toObject(),
+          ...course,
           enrolledCount
         };
       })
@@ -181,7 +182,8 @@ const getCourseById = async (req, res) => {
           path: 'userId',
           select: 'firstName lastName email'
         }
-      });
+      })
+      .lean();
 
     if (!course) {
       throw new NotFoundError('Course not found');
@@ -202,12 +204,12 @@ const getCourseById = async (req, res) => {
         path: 'userId',
         select: 'firstName lastName email'
       }
-    });
+    }).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
       data: {
-        ...course.toObject(),
+        ...course,
         enrolledCount,
         enrolledStudents
       }
@@ -256,7 +258,7 @@ const updateCourse = async (req, res) => {
         path: 'userId',
         select: 'firstName lastName email'
       }
-    });
+    }).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -330,7 +332,7 @@ const assignTeacher = async (req, res) => {
     const teacher = await Teacher.findById(resolvedTeacherId).populate({
       path: 'userId',
       select: 'firstName lastName email'
-    });
+    }).lean();
     
     if (!teacher) {
       throw new NotFoundError('Teacher not found');
@@ -346,7 +348,8 @@ const assignTeacher = async (req, res) => {
           path: 'userId',
           select: 'firstName lastName email'
         }
-      });
+      })
+      .lean();
 
     res.status(StatusCodes.OK).json({
       success: true,

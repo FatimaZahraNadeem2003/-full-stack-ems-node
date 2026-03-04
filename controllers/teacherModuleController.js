@@ -1,12 +1,13 @@
 const { Course, Teacher, User, Student, Enrollment, Grade, Schedule, Remark } = require('../models');
 const { BadRequestError, NotFoundError, UnauthorizedError } = require('../errors');
 const { StatusCodes } = require('http-status-codes');
+const mongoose = require('mongoose');
 
 const getTeacherDashboardStats = async (req, res) => {
   try {
     const teacherId = req.user.teacherId;
 
-    const courses = await Course.find({ teacherId, status: { $ne: 'completed' } });
+    const courses = await Course.find({ teacherId, status: { $ne: 'completed' } }).lean();
     
     let totalStudents = 0;
     for (const course of courses) {
@@ -29,7 +30,10 @@ const getTeacherDashboardStats = async (req, res) => {
 
     const pendingGrades = await Grade.countDocuments({
       teacherId,
-      grade: { $in: [null, 'Not Graded'] }
+      $or: [
+        { grade: { $in: [null, 'Not Graded'] } },
+        { grade: { $exists: false } }
+      ]
     });
 
     res.status(StatusCodes.OK).json({
@@ -56,7 +60,8 @@ const getTeacherCourses = async (req, res) => {
       status: { $ne: 'completed' }
     })
     .select('name code description credits department level status')
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
     const coursesWithStats = await Promise.all(
       courses.map(async (course) => {
@@ -68,10 +73,10 @@ const getTeacherCourses = async (req, res) => {
         const schedule = await Schedule.find({
           courseId: course._id,
           status: 'scheduled'
-        }).select('dayOfWeek startTime endTime room');
+        }).select('dayOfWeek startTime endTime room').lean();
 
         return {
-          ...course.toObject(),
+          ...course,
           enrolledCount,
           schedule
         };
@@ -89,7 +94,6 @@ const getTeacherCourses = async (req, res) => {
   }
 };
 
-
 const getCourseDetails = async (req, res) => {
   try {
     const { courseId } = req.params;
@@ -102,7 +106,8 @@ const getCourseDetails = async (req, res) => {
           path: 'userId',
           select: 'firstName lastName email'
         }
-      });
+      })
+      .lean();
 
     if (!course) {
       throw new NotFoundError('Course not found');
@@ -116,12 +121,12 @@ const getCourseDetails = async (req, res) => {
     const schedule = await Schedule.find({
       courseId,
       status: 'scheduled'
-    }).sort({ dayOfWeek: 1, startTime: 1 });
+    }).sort({ dayOfWeek: 1, startTime: 1 }).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
       data: {
-        ...course.toObject(),
+        ...course,
         enrolledCount,
         schedule
       }
@@ -132,15 +137,22 @@ const getCourseDetails = async (req, res) => {
   }
 };
 
-
 const getCourseStudents = async (req, res) => {
   try {
     const { courseId } = req.params;
     const teacherId = req.user.teacherId;
 
-    const course = await Course.findOne({ _id: courseId, teacherId });
+    if (!mongoose.Types.ObjectId.isValid(courseId)) {
+      throw new BadRequestError('Invalid course ID format');
+    }
+
+    const course = await Course.findById(courseId).lean();
     if (!course) {
-      throw new UnauthorizedError('You are not authorized to view this course');
+      throw new NotFoundError('Course not found');
+    }
+
+    if (course.teacherId && course.teacherId.toString() !== teacherId.toString()) {
+      throw new UnauthorizedError('You are not authorized to view students of this course');
     }
 
     const enrollments = await Enrollment.find({ 
@@ -154,9 +166,11 @@ const getCourseStudents = async (req, res) => {
         select: 'firstName lastName email'
       }
     })
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
 
     const students = enrollments.map(enrollment => ({
+      _id: enrollment._id,
       enrollmentId: enrollment._id,
       studentId: enrollment.studentId._id,
       name: `${enrollment.studentId.userId.firstName} ${enrollment.studentId.userId.lastName}`,
@@ -172,11 +186,7 @@ const getCourseStudents = async (req, res) => {
     res.status(StatusCodes.OK).json({
       success: true,
       count: students.length,
-      course: {
-        id: course._id,
-        name: course.name,
-        code: course.code
-      },
+      total: students.length,
       data: students
     });
   } catch (error) {
@@ -199,7 +209,7 @@ const addGrade = async (req, res) => {
 
     const teacherId = req.user.teacherId;
 
-    const course = await Course.findOne({ _id: courseId, teacherId });
+    const course = await Course.findOne({ _id: courseId, teacherId }).lean();
     if (!course) {
       throw new UnauthorizedError('You are not authorized to grade this course');
     }
@@ -208,7 +218,7 @@ const addGrade = async (req, res) => {
       studentId,
       courseId,
       status: 'enrolled'
-    });
+    }).lean();
 
     if (!enrollment) {
       throw new BadRequestError('Student is not enrolled in this course');
@@ -247,7 +257,6 @@ const addGrade = async (req, res) => {
   }
 };
 
-
 const updateGrade = async (req, res) => {
   try {
     const { id } = req.params;
@@ -276,7 +285,7 @@ const updateGrade = async (req, res) => {
         }
       },
       { path: 'courseId', select: 'name code' }
-    ]);
+    ]).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -289,13 +298,12 @@ const updateGrade = async (req, res) => {
   }
 };
 
-
 const getCourseGrades = async (req, res) => {
   try {
     const { courseId } = req.params;
     const teacherId = req.user.teacherId;
 
-    const course = await Course.findOne({ _id: courseId, teacherId });
+    const course = await Course.findOne({ _id: courseId, teacherId }).lean();
     if (!course) {
       throw new UnauthorizedError('You are not authorized to view this course');
     }
@@ -308,7 +316,8 @@ const getCourseGrades = async (req, res) => {
           select: 'firstName lastName'
         }
       })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const studentsMap = new Map();
     grades.forEach(grade => {
@@ -375,7 +384,21 @@ const getStudentGrades = async (req, res) => {
         }
       }
     ])
-    .sort({ createdAt: -1 });
+    .sort({ createdAt: -1 })
+    .lean();
+
+    if (grades.length === 0) {
+      return res.status(StatusCodes.OK).json({
+        success: true,
+        student: null,
+        statistics: {
+          totalGrades: 0,
+          averagePercentage: 0,
+          totalCourses: 0
+        },
+        data: []
+      });
+    }
 
     const totalGrades = grades.length;
     const averagePercentage = grades.reduce((acc, g) => acc + g.percentage, 0) / totalGrades || 0;
@@ -406,11 +429,11 @@ const getStudentGrades = async (req, res) => {
 
     res.status(StatusCodes.OK).json({
       success: true,
-      student: grades[0] ? {
+      student: {
         id: grades[0].studentId._id,
         name: `${grades[0].studentId.userId.firstName} ${grades[0].studentId.userId.lastName}`,
         rollNumber: grades[0].studentId.rollNumber
-      } : null,
+      },
       statistics: {
         totalGrades,
         averagePercentage: averagePercentage.toFixed(1),
@@ -424,7 +447,6 @@ const getStudentGrades = async (req, res) => {
   }
 };
 
-
 const getTeacherSchedule = async (req, res) => {
   try {
     const teacherId = req.user.teacherId;
@@ -434,7 +456,8 @@ const getTeacherSchedule = async (req, res) => {
         path: 'courseId',
         select: 'name code credits'
       })
-      .sort({ dayOfWeek: 1, startTime: 1 });
+      .sort({ dayOfWeek: 1, startTime: 1 })
+      .lean();
 
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const groupedSchedule = days.reduce((acc, day) => {
@@ -453,7 +476,6 @@ const getTeacherSchedule = async (req, res) => {
   }
 };
 
-
 const updateSchedule = async (req, res) => {
   try {
     const { id } = req.params;
@@ -471,8 +493,7 @@ const updateSchedule = async (req, res) => {
 
     const allowedUpdates = {
       status: updateData.status,
-      room: updateData.room,
-      ...(updateData.status === 'cancelled' ? { status: 'cancelled' } : {})
+      room: updateData.room
     };
 
     const updatedSchedule = await Schedule.findByIdAndUpdate(
@@ -482,7 +503,7 @@ const updateSchedule = async (req, res) => {
     ).populate({
       path: 'courseId',
       select: 'name code'
-    });
+    }).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -495,19 +516,18 @@ const updateSchedule = async (req, res) => {
   }
 };
 
-
 const addRemark = async (req, res) => {
   try {
     const { studentId, courseId, remark } = req.body;
     const teacherId = req.user.teacherId;
 
-    const student = await Student.findById(studentId);
+    const student = await Student.findById(studentId).lean();
     if (!student) {
       throw new NotFoundError('Student not found');
     }
 
     if (courseId) {
-      const course = await Course.findOne({ _id: courseId, teacherId });
+      const course = await Course.findOne({ _id: courseId, teacherId }).lean();
       if (!course) {
         throw new UnauthorizedError('You are not authorized to add remark for this course');
       }
@@ -566,12 +586,13 @@ const getStudentRemarks = async (req, res) => {
         },
         { path: 'courseId', select: 'name code' }
       ])
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const student = await Student.findById(studentId).populate({
       path: 'userId',
       select: 'firstName lastName'
-    });
+    }).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -598,7 +619,8 @@ const getTeacherProfile = async (req, res) => {
       .populate({
         path: 'userId',
         select: '-password'
-      });
+      })
+      .lean();
 
     if (!teacher) {
       throw new NotFoundError('Teacher not found');
@@ -639,7 +661,7 @@ const updateTeacherProfile = async (req, res) => {
     ).populate({
       path: 'userId',
       select: '-password'
-    });
+    }).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,

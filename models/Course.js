@@ -59,19 +59,4 @@ const CourseSchema = new mongoose.Schema({
     timestamps: true
 });
 
-CourseSchema.virtual('enrolledCount', {
-    ref: 'Enrollment',
-    localField: '_id',
-    foreignField: 'courseId',
-    count: true
-});
-
-CourseSchema.virtual('teacherName', {
-    ref: 'Teacher',
-    localField: 'teacherId',
-    foreignField: '_id',
-    justOne: true,
-    options: { select: 'userId' }
-});
-
 module.exports = mongoose.model('Course', CourseSchema);
