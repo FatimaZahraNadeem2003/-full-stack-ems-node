@@ -50,7 +50,6 @@ const createSchedule = async (req, res) => {
       status
     } = req.body;
 
-    // Validate required fields
     if (!courseId || !teacherId || !dayOfWeek || !startTime || !endTime || !room || !semester || !academicYear) {
       throw new BadRequestError('Please provide all required fields');
     }
