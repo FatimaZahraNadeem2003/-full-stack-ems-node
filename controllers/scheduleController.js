@@ -186,7 +186,6 @@ const getAllSchedules = async (req, res) => {
     }
 
     if (search && search.trim() !== '') {
-      // First, find courses that match the search
       const courses = await Course.find({
         $or: [
           { name: { $regex: search, $options: 'i' } },
@@ -197,7 +196,6 @@ const getAllSchedules = async (req, res) => {
       
       const courseIds = courses.map(c => c._id);
 
-      // Find teachers that match the search
       const teachers = await Teacher.find({
         $or: [
           { 'userId.firstName': { $regex: search, $options: 'i' } },
