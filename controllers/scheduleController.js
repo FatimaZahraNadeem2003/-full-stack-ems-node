@@ -210,7 +210,6 @@ const getAllSchedules = async (req, res) => {
       
       const teacherIds = teachers.map(t => t._id);
 
-      // Build search query
       query.$or = [
         { room: { $regex: search, $options: 'i' } },
         { building: { $regex: search, $options: 'i' } },
@@ -338,7 +337,6 @@ const updateSchedule = async (req, res) => {
       throw new NotFoundError('Schedule not found');
     }
 
-    // Check for conflicts if time or room or teacher is being updated
     if (updateData.dayOfWeek || updateData.startTime || updateData.endTime || 
         updateData.room || updateData.teacherId) {
       
@@ -354,7 +352,6 @@ const updateSchedule = async (req, res) => {
         ]
       };
 
-      // Check room conflict
       if (updateData.room || schedule.room) {
         const roomConflict = await Schedule.findOne({
           ...conflictQuery,
@@ -365,7 +362,6 @@ const updateSchedule = async (req, res) => {
         }
       }
 
-      // Check teacher conflict
       if (updateData.teacherId || schedule.teacherId) {
         const teacherConflict = await Schedule.findOne({
           ...conflictQuery,

@@ -13,7 +13,7 @@ const resolveStudentId = async (studentIdentifier) => {
         { rollNumber: studentIdentifier },
         { 'userId.email': studentIdentifier }
       ]
-    }).populate('userId');
+    }).populate('userId').lean();
     return student?._id;
   }
 };
@@ -29,7 +29,7 @@ const resolveCourseId = async (courseIdentifier) => {
         { code: courseIdentifier },
         { name: { $regex: courseIdentifier, $options: 'i' } }
       ]
-    });
+    }).lean();
     return course?._id;
   }
 };
@@ -47,15 +47,20 @@ const createEnrollment = async (req, res) => {
       remarks
     } = req.body;
 
+    if (!studentId || !courseId) {
+      throw new BadRequestError('Student ID and Course ID are required');
+    }
+
     const student = await Student.findById(studentId).populate({
       path: 'userId',
       select: 'firstName lastName email'
-    });
+    }).lean();
+    
     if (!student) {
       throw new NotFoundError('Student not found');
     }
 
-    const course = await Course.findById(courseId);
+    const course = await Course.findById(courseId).lean();
     if (!course) {
       throw new NotFoundError('Course not found');
     }
@@ -64,7 +69,7 @@ const createEnrollment = async (req, res) => {
       studentId,
       courseId,
       status: { $in: ['enrolled', 'completed'] }
-    });
+    }).lean();
 
     if (existingEnrollment) {
       throw new BadRequestError('Student already enrolled in this course');
@@ -124,6 +129,7 @@ const getAllEnrollments = async (req, res) => {
     } = req.query;
 
     const query = {};
+    
     if (status) query.status = status;
 
     if (studentId) {
@@ -158,26 +164,64 @@ const getAllEnrollments = async (req, res) => {
       }
     }
 
-    if (search) {
+    if (search && search.trim() !== '') {
+      const searchTerm = search.trim();
+      
       const users = await User.find({
         role: 'student',
         $or: [
-          { firstName: { $regex: search, $options: 'i' } },
-          { lastName: { $regex: search, $options: 'i' } },
-          { email: { $regex: search, $options: 'i' } }
+          { firstName: { $regex: searchTerm, $options: 'i' } },
+          { lastName: { $regex: searchTerm, $options: 'i' } },
+          { email: { $regex: searchTerm, $options: 'i' } }
         ]
-      }).select('_id');
+      }).select('_id').lean();
+      
+      const userIds = users.map(u => u._id);
 
       const students = await Student.find({
-        userId: { $in: users.map(u => u._id) }
-      }).select('_id');
+        $or: [
+          { userId: { $in: userIds } },
+          { rollNumber: { $regex: searchTerm, $options: 'i' } },
+          { class: { $regex: searchTerm, $options: 'i' } }
+        ]
+      }).select('_id').lean();
+      
+      const studentIds = students.map(s => s._id);
 
-      if (students.length > 0) {
-        query.studentId = { $in: students.map(s => s._id) };
+      const courses = await Course.find({
+        $or: [
+          { name: { $regex: searchTerm, $options: 'i' } },
+          { code: { $regex: searchTerm, $options: 'i' } },
+          { department: { $regex: searchTerm, $options: 'i' } }
+        ]
+      }).select('_id').lean();
+      
+      const courseIds = courses.map(c => c._id);
+
+      query.$or = [];
+
+      if (studentIds.length > 0) {
+        query.$or.push({ studentId: { $in: studentIds } });
+      }
+
+      if (courseIds.length > 0) {
+        query.$or.push({ courseId: { $in: courseIds } });
+      }
+
+      if (studentIds.length === 0 && courseIds.length === 0) {
+        return res.status(StatusCodes.OK).json({
+          success: true,
+          count: 0,
+          total: 0,
+          page: parseInt(page),
+          pages: 0,
+          data: []
+        });
       }
     }
 
     const skip = (parseInt(page) - 1) * parseInt(limit);
+    const limitNum = Math.min(parseInt(limit), 100);
 
     const enrollments = await Enrollment.find(query)
       .populate([
@@ -188,31 +232,41 @@ const getAllEnrollments = async (req, res) => {
             select: 'firstName lastName email'
           }
         },
-        { path: 'courseId', select: 'name code credits department teacherId' }
+        { path: 'courseId', select: 'name code credits department' }
       ])
       .sort({ createdAt: -1 })
       .skip(skip)
-      .limit(parseInt(limit));
+      .limit(limitNum)
+      .lean();
 
     const total = await Enrollment.countDocuments(query);
+
+    console.log(`Found ${enrollments.length} enrollments matching query`);
 
     res.status(StatusCodes.OK).json({
       success: true,
       count: enrollments.length,
       total,
       page: parseInt(page),
-      pages: Math.ceil(total / parseInt(limit)),
+      pages: Math.ceil(total / limitNum),
       data: enrollments
     });
   } catch (error) {
     console.error('Get all enrollments error:', error);
-    throw error;
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+      success: false,
+      msg: 'Failed to fetch enrollments'
+    });
   }
 };
 
 const getEnrollmentById = async (req, res) => {
   try {
     const { id } = req.params;
+
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new BadRequestError('Invalid enrollment ID format');
+    }
 
     const enrollment = await Enrollment.findById(id)
       .populate([
@@ -233,7 +287,8 @@ const getEnrollmentById = async (req, res) => {
             }
           }
         }
-      ]);
+      ])
+      .lean();
 
     if (!enrollment) {
       throw new NotFoundError('Enrollment not found');
@@ -253,6 +308,10 @@ const updateEnrollment = async (req, res) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new BadRequestError('Invalid enrollment ID format');
+    }
 
     const enrollment = await Enrollment.findById(id);
     if (!enrollment) {
@@ -276,7 +335,7 @@ const updateEnrollment = async (req, res) => {
         }
       },
       { path: 'courseId', select: 'name code credits' }
-    ]);
+    ]).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -293,12 +352,16 @@ const deleteEnrollment = async (req, res) => {
   try {
     const { id } = req.params;
 
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
+      throw new BadRequestError('Invalid enrollment ID format');
+    }
+
     const enrollment = await Enrollment.findById(id);
     if (!enrollment) {
       throw new NotFoundError('Enrollment not found');
     }
 
-    await enrollment.deleteOne();
+    await Enrollment.findByIdAndDelete(id);
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -320,7 +383,7 @@ const getStudentCourses = async (req, res) => {
       throw new NotFoundError('Student not found');
     }
 
-    const student = await Student.findById(resolvedStudentId);
+    const student = await Student.findById(resolvedStudentId).lean();
     if (!student) {
       throw new NotFoundError('Student not found');
     }
@@ -341,7 +404,8 @@ const getStudentCourses = async (req, res) => {
           }
         }
       ])
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const totalCourses = enrollments.length;
     const completedCourses = enrollments.filter(e => e.status === 'completed').length;
@@ -387,7 +451,7 @@ const bulkEnroll = async (req, res) => {
       throw new NotFoundError('Course not found');
     }
 
-    const course = await Course.findById(resolvedCourseId);
+    const course = await Course.findById(resolvedCourseId).lean();
     if (!course) {
       throw new NotFoundError('Course not found');
     }
@@ -412,7 +476,7 @@ const bulkEnroll = async (req, res) => {
           studentId: resolvedStudentId,
           courseId: resolvedCourseId,
           status: { $in: ['enrolled', 'completed'] }
-        });
+        }).lean();
 
         if (existing) {
           results.failed.push({
@@ -481,12 +545,13 @@ const selfEnroll = async (req, res) => {
     const student = await Student.findById(studentId).populate({
       path: 'userId',
       select: 'firstName lastName email'
-    });
+    }).lean();
+    
     if (!student) {
       throw new NotFoundError('Student not found');
     }
 
-    const course = await Course.findById(resolvedCourseId);
+    const course = await Course.findById(resolvedCourseId).lean();
     if (!course) {
       throw new NotFoundError('Course not found');
     }
@@ -495,7 +560,7 @@ const selfEnroll = async (req, res) => {
       studentId,
       courseId: resolvedCourseId,
       status: { $in: ['enrolled', 'completed'] }
-    });
+    }).lean();
 
     if (existingEnrollment) {
       throw new BadRequestError('You are already enrolled in this course');
@@ -562,7 +627,8 @@ const getStudentEnrollments = async (req, res) => {
           }
         }
       ])
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
     const totalCourses = enrollments.length;
     const completedCourses = enrollments.filter(e => e.status === 'completed').length;
