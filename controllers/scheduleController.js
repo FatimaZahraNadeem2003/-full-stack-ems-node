@@ -148,7 +148,6 @@ const getAllSchedules = async (req, res) => {
 
     const query = {};
     
-    // Apply filters
     if (dayOfWeek) query.dayOfWeek = dayOfWeek;
     if (semester) query.semester = { $regex: semester, $options: 'i' };
     if (academicYear) query.academicYear = { $regex: academicYear, $options: 'i' };
