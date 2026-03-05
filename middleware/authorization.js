@@ -134,15 +134,6 @@ const studentAuth = async (req, res, next) => {
       if (!student) {
         throw new UnauthorizedError("Student profile not found");
       }
-      
-      if (student.status === 'suspended') {
-        throw new UnauthorizedError("Your account has been suspended. Please contact administration.");
-      }
-      
-      if (student.status === 'inactive') {
-        throw new UnauthorizedError("Your account is inactive. Please contact administration.");
-      }
-      
       req.user.studentId = student._id.toString();
       req.user.student = student;
       return next();
@@ -196,6 +187,35 @@ const teacherOrStudentAuth = async (req, res, next) => {
   }
 };
 
+const teacherCanViewStudents = async (req, res, next) => {
+  try {
+    if (!req.user) {
+      throw new UnauthenticatedError("Authentication required");
+    }
+
+    if (req.user.role === 'admin') {
+      return next();
+    }
+
+    if (req.user.role === 'teacher') {
+      if (req.method === 'GET') {
+        const teacher = await Teacher.findOne({ userId: req.user.userId });
+        if (!teacher) {
+          throw new UnauthorizedError("Teacher profile not found");
+        }
+        req.user.teacherId = teacher._id.toString();
+        return next();
+      } else {
+        throw new UnauthorizedError("Teachers can only view students, not modify them");
+      }
+    }
+
+    throw new UnauthorizedError("Access denied");
+  } catch (error) {
+    next(error);
+  }
+};
+
 const authorizeOwnerOrAdmin = (getResourceOwnerId) => {
   return async (req, res, next) => {
     try {
@@ -236,5 +256,6 @@ module.exports = {
   teacherAuth,
   studentAuth,
   teacherOrStudentAuth,
+  teacherCanViewStudents, 
   authorizeOwnerOrAdmin
 };

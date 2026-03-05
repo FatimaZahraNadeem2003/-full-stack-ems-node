@@ -164,6 +164,9 @@ const getStudentById = async (req, res) => {
       throw new NotFoundError('Student not found');
     }
 
+    // If user is teacher, we can add additional info if needed
+    // But basic student info is enough for viewing
+
     res.status(StatusCodes.OK).json({
       success: true,
       data: student
