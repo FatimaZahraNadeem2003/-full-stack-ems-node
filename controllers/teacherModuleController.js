@@ -209,6 +209,10 @@ const addGrade = async (req, res) => {
 
     const teacherId = req.user.teacherId;
 
+    if (!studentId || !courseId || !assessmentType || !assessmentName || !maxMarks || obtainedMarks === undefined) {
+      throw new BadRequestError('Please provide all required fields');
+    }
+
     const course = await Course.findOne({ _id: courseId, teacherId }).lean();
     if (!course) {
       throw new UnauthorizedError('You are not authorized to grade this course');
@@ -224,16 +228,32 @@ const addGrade = async (req, res) => {
       throw new BadRequestError('Student is not enrolled in this course');
     }
 
-    const grade = await Grade.create({
+    const existingGrade = await Grade.findOne({
       studentId,
       courseId,
-      teacherId,
-      assessmentType,
-      assessmentName,
-      maxMarks,
-      obtainedMarks,
-      remarks
+      assessmentName
     });
+
+    let grade;
+    if (existingGrade) {
+      existingGrade.assessmentType = assessmentType;
+      existingGrade.maxMarks = maxMarks;
+      existingGrade.obtainedMarks = obtainedMarks;
+      existingGrade.remarks = remarks;
+      await existingGrade.save();
+      grade = existingGrade;
+    } else {
+      grade = await Grade.create({
+        studentId,
+        courseId,
+        teacherId,
+        assessmentType,
+        assessmentName,
+        maxMarks,
+        obtainedMarks,
+        remarks
+      });
+    }
 
     await grade.populate([
       {
@@ -248,7 +268,7 @@ const addGrade = async (req, res) => {
 
     res.status(StatusCodes.CREATED).json({
       success: true,
-      message: 'Grade added successfully',
+      message: 'Grade saved successfully',
       data: grade
     });
   } catch (error) {
