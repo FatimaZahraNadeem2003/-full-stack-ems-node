@@ -1,13 +1,33 @@
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
 const connectDB = async (mongoURI) => {
     try {
-        await mongoose.connect(mongoURI || process.env.MONGO_URI)
-        console.log('✅ MONGODB IS CONNECTED')
+        const conn = await mongoose.connect(mongoURI || process.env.MONGO_URI, {
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+            maxPoolSize: 10,
+            minPoolSize: 2
+        });
+        
+        console.log('✅ MONGODB IS CONNECTED');
+        
+        mongoose.connection.on('error', (err) => {
+            console.error('❌ MongoDB connection error:', err);
+        });
+
+        mongoose.connection.on('disconnected', () => {
+            console.log('⚠️ MongoDB disconnected - attempting to reconnect...');
+        });
+
+        mongoose.connection.on('reconnected', () => {
+            console.log('✅ MongoDB reconnected successfully');
+        });
+
+        return conn;
     } catch (error) {
-        console.error('❌ MongoDB connection error:', error.message)
+        console.error('❌ MongoDB connection error:', error.message);
         process.exit(1);
     }
-}
+};
 
-module.exports = connectDB
+module.exports = connectDB;

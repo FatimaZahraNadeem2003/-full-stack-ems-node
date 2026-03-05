@@ -128,9 +128,47 @@ const port = process.env.PORT || 5000;
 const start = async () => {
   try {
     await connectDB();
-    app.listen(port, () => {
+    
+    const server = app.listen(port, () => {
       console.log(`✅ Server is running on port ${port}`);
     });
+
+    server.on('error', (error) => {
+      console.error('❌ Server error:', error);
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${port} is already in use`);
+        process.exit(1);
+      }
+    });
+
+    process.on('uncaughtException', (error) => {
+      console.error('❌ Uncaught Exception:', error);
+    });
+
+    process.on('unhandledRejection', (error) => {
+      console.error('❌ Unhandled Rejection:', error);
+    });
+
+    process.on('SIGTERM', () => {
+      console.log('🔄 SIGTERM received, closing server...');
+      server.close(() => {
+        console.log('✅ Server closed');
+        mongoose.connection.close(false, () => {
+          process.exit(0);
+        });
+      });
+    });
+
+    process.on('SIGINT', () => {
+      console.log('🔄 SIGINT received, closing server...');
+      server.close(() => {
+        console.log('✅ Server closed');
+        mongoose.connection.close(false, () => {
+          process.exit(0);
+        });
+      });
+    });
+
   } catch (error) {
     console.error('❌ Server startup error:', error);
     process.exit(1);

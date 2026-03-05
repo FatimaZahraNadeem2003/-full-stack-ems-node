@@ -89,7 +89,7 @@ const getAllStudents = async (req, res) => {
           { lastName: { $regex: search, $options: 'i' } },
           { email: { $regex: search, $options: 'i' } }
         ]
-      }).select('_id').limit(100);
+      }).select('_id').limit(100).lean();
       
       const userIds = users.map(u => u._id);
       if (userIds.length > 0) {
@@ -97,7 +97,7 @@ const getAllStudents = async (req, res) => {
       } else {
         const studentsByRoll = await Student.find({
           rollNumber: { $regex: search, $options: 'i' }
-        }).select('_id').limit(100);
+        }).select('_id').limit(100).lean();
         
         if (studentsByRoll.length > 0) {
           query._id = { $in: studentsByRoll.map(s => s._id) };
@@ -149,7 +149,7 @@ const getStudentById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
       throw new BadRequestError('Invalid student ID format');
     }
 
@@ -157,7 +157,8 @@ const getStudentById = async (req, res) => {
       .populate({
         path: 'userId',
         select: '-password'
-      });
+      })
+      .lean();
 
     if (!student) {
       throw new NotFoundError('Student not found');
@@ -186,7 +187,7 @@ const updateStudent = async (req, res) => {
     const { id } = req.params;
     const updateData = req.body;
 
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
       throw new BadRequestError('Invalid student ID format');
     }
 
@@ -203,7 +204,7 @@ const updateStudent = async (req, res) => {
 
       if (Object.keys(userUpdate).length > 0) {
         await User.findByIdAndUpdate(student.userId, userUpdate, {
-          returnDocument: 'after',
+          new: true,
           runValidators: true
         });
       }
@@ -218,11 +219,11 @@ const updateStudent = async (req, res) => {
     const updatedStudent = await Student.findByIdAndUpdate(
       id,
       studentUpdate,
-      { returnDocument: 'after', runValidators: true }
+      { new: true, runValidators: true }
     ).populate({
       path: 'userId',
       select: '-password'
-    });
+    }).lean();
 
     res.status(StatusCodes.OK).json({
       success: true,
@@ -244,7 +245,7 @@ const deleteStudent = async (req, res) => {
   try {
     const { id } = req.params;
 
-    if (!id.match(/^[0-9a-fA-F]{24}$/)) {
+    if (!id || !id.match(/^[0-9a-fA-F]{24}$/)) {
       throw new BadRequestError('Invalid student ID format');
     }
 
