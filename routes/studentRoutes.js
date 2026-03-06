@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middleware/authentication');
-const { studentAuth, adminMiddleware, teacherCanViewStudents } = require('../middleware/authorization');
+const { studentAuth, adminMiddleware } = require('../middleware/authorization');
 const {
   getStudentProfile,
   updateStudentProfile,
@@ -11,8 +11,8 @@ const {
   getAllStudentGrades,
   getCourseWiseGrades,
   getStudentProgress,
-  getAvailableCourses,
-  enrollInCourse
+  getAvailableCourses,  
+  enrollInCourse        
 } = require('../controllers/studentModuleController');
 
 const {
@@ -39,8 +39,7 @@ router.get('/grades/course/:courseId', authMiddleware, studentAuth, getCourseWis
 
 router.post('/', authMiddleware, adminMiddleware, addStudent);
 router.get('/', authMiddleware, adminMiddleware, getAllStudents);
-
-router.get('/:id', authMiddleware, teacherCanViewStudents, getStudentById);
+router.get('/:id', authMiddleware, adminMiddleware, getStudentById);
 router.put('/:id', authMiddleware, adminMiddleware, updateStudent);
 router.delete('/:id', authMiddleware, adminMiddleware, deleteStudent);
 

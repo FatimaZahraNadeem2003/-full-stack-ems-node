@@ -533,41 +533,33 @@ const selfEnroll = async (req, res) => {
     const studentId = req.user.studentId;
     const { courseId } = req.body;
 
+    console.log("Self enroll request:", { studentId, courseId });
+
     if (!courseId) {
       throw new BadRequestError('Course ID is required');
     }
 
-    const resolvedCourseId = await resolveCourseId(courseId);
-    if (!resolvedCourseId) {
-      throw new NotFoundError('Course not found');
-    }
-
-    const student = await Student.findById(studentId).populate({
-      path: 'userId',
-      select: 'firstName lastName email'
-    }).lean();
-    
-    if (!student) {
-      throw new NotFoundError('Student not found');
-    }
-
-    const course = await Course.findById(resolvedCourseId).lean();
+    const course = await Course.findById(courseId);
     if (!course) {
       throw new NotFoundError('Course not found');
     }
 
+    if (course.status !== 'active') {
+      throw new BadRequestError('This course is not available for enrollment');
+    }
+
     const existingEnrollment = await Enrollment.findOne({
       studentId,
-      courseId: resolvedCourseId,
+      courseId,
       status: { $in: ['enrolled', 'completed'] }
-    }).lean();
+    });
 
     if (existingEnrollment) {
       throw new BadRequestError('You are already enrolled in this course');
     }
 
     const enrolledCount = await Enrollment.countDocuments({
-      courseId: resolvedCourseId,
+      courseId,
       status: 'enrolled'
     });
 
@@ -577,11 +569,14 @@ const selfEnroll = async (req, res) => {
 
     const enrollment = await Enrollment.create({
       studentId,
-      courseId: resolvedCourseId,
+      courseId,
       enrollmentDate: Date.now(),
       status: 'enrolled',
-      progress: 0
+      progress: 0,
+      grade: 'Not Graded'
     });
+
+    console.log("Enrollment created:", enrollment._id);
 
     await enrollment.populate([
       { 

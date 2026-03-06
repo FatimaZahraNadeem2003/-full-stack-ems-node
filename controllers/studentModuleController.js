@@ -544,8 +544,10 @@ const getStudentProgress = async (req, res) => {
 const getAvailableCourses = async (req, res) => {
   try {
     const studentId = req.user.studentId;
+    
+    console.log("Fetching available courses for student:", studentId);
 
-    const availableCourses = await Course.find({ 
+    const allCourses = await Course.find({ 
       status: 'active' 
     })
     .populate({
@@ -556,28 +558,33 @@ const getAvailableCourses = async (req, res) => {
       }
     })
     .select('name code description credits department level duration maxStudents status teacherId')
-    .limit(100);
+    .lean();
+
+    console.log(`Found ${allCourses.length} total active courses`);
 
     const enrollments = await Enrollment.find({ 
       studentId,
       status: { $in: ['enrolled', 'completed'] }
-    }).select('courseId');
+    }).select('courseId').lean();
 
     const enrolledCourseIds = enrollments.map(e => e.courseId.toString());
+    console.log("Enrolled course IDs:", enrolledCourseIds);
 
-    const filteredCourses = availableCourses.filter(
+    const availableCourses = allCourses.filter(
       course => !enrolledCourseIds.includes(course._id.toString())
     );
 
+    console.log(`After filtering: ${availableCourses.length} available courses`);
+
     const coursesWithCounts = await Promise.all(
-      filteredCourses.map(async (course) => {
+      availableCourses.map(async (course) => {
         const enrolledCount = await Enrollment.countDocuments({
           courseId: course._id,
           status: 'enrolled'
         });
         
         return {
-          ...course.toObject(),
+          ...course,
           enrolledCount
         };
       })
