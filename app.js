@@ -1,5 +1,6 @@
 require("express-async-errors");
 require("dotenv").config({ path: "./.env" });
+const mongoose = require('mongoose');
 
 const requiredEnvVars = ['MONGO_URI', 'JWT_SECRET', 'JWT_LIFETIME', 'PORT'];
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
@@ -21,7 +22,6 @@ const connectDB = require("./db/connect");
 
 const authRouter = require('./routes/auth');
 const userRouter = require('./routes/user');
-const testRoutes = require('./routes/test');
 
 const studentRoutes = require('./routes/studentRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
@@ -65,7 +65,6 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 app.use("/api/v1/auth", authRouter);
 app.use("/api/v1/users", userRouter);
-app.use("/api/v1/test", testRoutes);
 
 app.use("/api/v1/admin/students", studentRoutes);
 app.use("/api/v1/admin/courses", courseRoutes);

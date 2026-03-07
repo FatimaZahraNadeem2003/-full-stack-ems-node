@@ -261,8 +261,6 @@ const getAllSchedules = async (req, res) => {
       return acc;
     }, {});
 
-    console.log(`Found ${schedules.length} schedules matching query`);
-
     res.status(StatusCodes.OK).json({
       success: true,
       count: schedules.length,

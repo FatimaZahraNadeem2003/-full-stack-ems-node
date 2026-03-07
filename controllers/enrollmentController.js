@@ -241,8 +241,6 @@ const getAllEnrollments = async (req, res) => {
 
     const total = await Enrollment.countDocuments(query);
 
-    console.log(`Found ${enrollments.length} enrollments matching query`);
-
     res.status(StatusCodes.OK).json({
       success: true,
       count: enrollments.length,
